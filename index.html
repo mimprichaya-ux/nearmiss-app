@@ -349,6 +349,17 @@
             cursor: pointer;
             border: 1.5px solid var(--primary);
         }
+
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #eef6ff;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #b3d6fc;
+        }
     </style>
 </head>
 <body>
@@ -388,12 +399,12 @@
                         <label>2. แผนก / ฝ่าย ของท่าน <span class="req">*</span></label>
                         <select id="department" class="form-control" required>
                             <option value="">-- เลือกแผนก --</option>
-                            <option value="แผนกขับรถส่งสินค้า">แผนกขับรถส่งสินค้า</option>
-                            <option value="หน่วยซ่อมบำรุงรถบรรทุก">หน่วยซ่อมบำรุงรถบรรทุก (ช่างซ่อม)</option>
-                            <option value="แผนกขนส่ง / วางแผนกลาง">แผนกขนส่ง / วางแผนกลาง</option>
-                            <option value="แผนกธุรการ (ขนส่ง/ซ่อมบำรุง)">แผนกธุรการ (ขนส่ง/ซ่อมบำรุง)</option>
-                            <option value="ความปลอดภัย (จป.)">ความปลอดภัย (จป.)</option>
-                            <option value="แม่บ้าน">แม่บ้าน</option>
+                            <option value="แผนกขับรถส่งสินค้า">แผนกขับรถส่งสินค้า (สายปฏิบัติการ)</option>
+                            <option value="หน่วยซ่อมบำรุงรถบรรทุก">หน่วยซ่อมบำรุงรถบรรทุก (สายปฏิบัติการ)</option>
+                            <option value="แผนกขนส่ง / วางแผนกลาง">แผนกขนส่ง / วางแผนกลาง (สายสนับสนุน)</option>
+                            <option value="แผนกธุรการ (ขนส่ง/ซ่อมบำรุง)">แผนกธุรการ (สายสนับสนุน)</option>
+                            <option value="ความปลอดภัย (จป.)">ความปลอดภัย (จป.) (สายสนับสนุน)</option>
+                            <option value="แม่บ้าน">แม่บ้าน (สายสนับสนุน)</option>
                             <option value="อื่นๆ">อื่นๆ</option>
                         </select>
                     </div>
@@ -477,8 +488,8 @@
         <div class="card">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <div>
-                    <h2>📊 ตารางประเมินคะแนน & ตรวจสอบอนุมัติโบนัส 🔒</h2>
-                    <p>ทีม Safety สามารถตรวจสอบรูปถ่ายหลักฐาน และอนุมัติคะแนนโบนัสได้ในตาราง</p>
+                    <h2>📊 ตารางประเมินคะแนน & จัดอันดับแยกสายงาน 🔒</h2>
+                    <p>เลือกกรองสายงานเพื่อจัดอันดับและแจกรางวัลแยกตามโควต้า (สายปฏิบัติการ VS สายสนับสนุน)</p>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <button class="btn-excel" onclick="exportToCSV()">📥 Export to Excel (CSV)</button>
@@ -486,6 +497,17 @@
                 </div>
             </div>
             <div class="card-body" style="overflow-x: auto;">
+                
+                <!-- Group Filter Bar -->
+                <div class="filter-bar">
+                    <label style="font-weight: 600; font-size: 13px; color: var(--primary-dark);">🎯 กรองจัดอันดับตามสายงาน:</label>
+                    <select id="groupFilter" class="form-control" style="max-width: 280px; padding: 6px 10px; font-size: 13px;" onchange="renderAdminTable()">
+                        <option value="all">🌐 แสดงทุกสายงาน (ภาพรวมทั้งหมด)</option>
+                        <option value="ops">🚛 สายปฏิบัติการ (ขนส่ง & ช่างซ่อมบำรุง)</option>
+                        <option value="office">🏢 สายสนับสนุน & ออฟฟิศ (ธุรการ/แม่บ้าน)</option>
+                    </select>
+                </div>
+
                 <table id="adminTable">
                     <thead>
                         <tr>
@@ -549,6 +571,22 @@
                 ],
                 actionTaken: 'จัดการแก้ไขจุดเสี่ยงสำเร็จทันที (Stop & Fix)',
                 suggestion: 'นำทรายซับน้ำมันมาเทและทำความสะอาดเรียบร้อยแล้ว',
+                auditStatus: 'approved',
+                scoreRisk: 2,
+                scoreData: 3,
+                scoreAction: 3,
+                scoreBonus: 1
+            },
+            {
+                id: 3,
+                timestamp: '05/08/2026 11:10',
+                empInfo: '65099 นางสาวมณี รักสงบ',
+                department: 'แผนกธุรการ (ขนส่ง/ซ่อมบำรุง)',
+                location: 'สำนักงาน / ห้องพักพนักงาน',
+                description: 'สายปลั๊กพ่วงพัดลมในห้องธุรการชำรุด มีรอยไหม้ตรงเต้ารับ',
+                images: ['https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop'],
+                actionTaken: 'ปฏิบัติการความปลอดภัยทันที (Safety Action)',
+                suggestion: 'แจ้งช่างให้เปลี่ยนปลั๊กพ่วงมาตรฐานใหม่ทันที',
                 auditStatus: 'approved',
                 scoreRisk: 2,
                 scoreData: 3,
@@ -687,14 +725,26 @@
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
+            const filterVal = document.getElementById('groupFilter') ? document.getElementById('groupFilter').value : 'all';
+
+            // Filter data by group
+            let filteredData = reportsData.filter(item => {
+                if (filterVal === 'ops') {
+                    return item.department.includes('ขับรถ') || item.department.includes('ซ่อมบำรุง');
+                } else if (filterVal === 'office') {
+                    return !item.department.includes('ขับรถ') && !item.department.includes('ซ่อมบำรุง');
+                }
+                return true; // all
+            });
+
             // Sort by Total Score descending
-            const sortedData = [...reportsData].sort((a, b) => {
+            filteredData.sort((a, b) => {
                 const totalA = (a.scoreRisk || 0) + (a.scoreData || 0) + (a.scoreAction || 0) + (a.scoreBonus || 0);
                 const totalB = (b.scoreRisk || 0) + (b.scoreData || 0) + (b.scoreAction || 0) + (b.scoreBonus || 0);
                 return totalB - totalA;
             });
 
-            sortedData.forEach((item, index) => {
+            filteredData.forEach((item, index) => {
                 const totalScore = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
                 
                 let rankBadgeClass = 'rank-other';
