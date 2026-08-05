@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบรายงาน Near Miss - พชร. ขนส่ง & ซ่อมบำรุง</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary: #0078d4;
+            --primary-dark: #005a9e;
+            --success: #107c41;
+            --success-light: #dff6dd;
+            --warning: #ffb900;
+            --danger: #d13438;
+            --bg-body: #f3f2f1;
+            --card-bg: #ffffff;
+            --text-main: #323130;
+            --text-muted: #605e5c;
+            --border: #e1dfdd;
+            --radius: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Kanit', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 40px;
+        }
+
+        /* App Bar Header */
+        .app-bar {
+            width: 100%;
+            background: linear-gradient(135deg, #0078d4, #004578);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mode-switcher {
+            display: flex;
+            background: rgba(255,255,255,0.2);
+            padding: 4px;
+            border-radius: 20px;
+        }
+
+        .mode-btn {
+            border: none;
+            background: transparent;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn.active {
+            background: white;
+            color: var(--primary-dark);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        /* Container Layouts */
+        .main-container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px 15px;
+        }
+
+        .main-container.wide {
+            max-width: 1100px;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h2 {
+            font-size: 18px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .card-header p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .form-group label span.req {
+            color: var(--danger);
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            background: #faf9f8;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.15);
+        }
+
+        textarea.form-control {
+            min-height: 85px;
+            resize: vertical;
+        }
+
+        .radio-card {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            background: #faf9f8;
+            transition: all 0.2s ease;
+        }
+
+        .radio-card:hover {
+            border-color: var(--primary);
+            background: #f3f9ff;
+        }
+
+        .radio-card input {
+            margin-right: 12px;
+            margin-top: 3px;
+            accent-color: var(--primary);
+            width: 18px;
+            height: 18px;
+        }
+
+        .file-box {
+            border: 2px dashed #b3d6fc;
+            background: #f0f7ff;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .file-box:hover {
+            background: #e1f0ff;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 160px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 120, 212, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-excel {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-excel:hover {
+            background: #0b5f30;
+        }
+
+        /* Admin Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .badge-score {
+            background: #e1f0ff;
+            color: var(--primary-dark);
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+        }
+
+        .rank-badge {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            color: white;
+        }
+
+        .rank-1 { background: #ffb900; }
+        .rank-2 { background: #a6a6a6; }
+        .rank-3 { background: #d77b29; }
+        .rank-other { background: #e1dfdd; color: #333; }
+
+        .score-input {
+            width: 55px;
+            padding: 4px 6px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .img-thumbnail {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- App Header Bar -->
+    <div class="app-bar">
+        <div class="app-title">
+            🚛 <span>Near Miss System</span>
+        </div>
+        <div class="mode-switcher">
+            <button class="mode-btn active" id="btnModeForm" onclick="switchView('user')">📱 กรอกรายงาน</button>
+            <button class="mode-btn" id="btnModeAdmin" onclick="requestAdminAccess()">🔒 หลังบ้าน (ใส่รหัส)</button>
+        </div>
+    </div>
+
+    <!-- VIEW 1: USER REPORT FORM -->
+    <div id="viewUser" class="main-container">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #0078d4, #004578); color: white;">
+                <h2 style="color: white; font-size: 20px;">แบบแจ้งเหตุการณ์ Near Miss</h2>
+                <p style="color: rgba(255,255,255,0.9);">"สะกิดความเสี่ยง สะสมเสบียง ปลอดภัยไปด้วยกัน"</p>
+                <div style="margin-top: 8px; font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; display: inline-block;">
+                    🎁 ลุ้นรับ ข้าวสาร / ไข่ไก่ / มาม่า 16 รางวัลทุกเดือน
+                </div>
+            </div>
+            <div class="card-body">
+                <form id="nearMissForm" onsubmit="submitReport(event)">
+                    <!-- Q1 -->
+                    <div class="form-group">
+                        <label>1. รหัสพนักงาน และ ชื่อ-นามสกุล <span class="req">*</span></label>
+                        <span class="hint">(ตัวอย่าง: 65012 สมชาย ใจดี)</span>
+                        <input type="text" id="empInfo" class="form-control" placeholder="พิมพ์รหัสพนักงาน และ ชื่อ-นามสกุล" required>
+                    </div>
+
+                    <!-- Q2 -->
+                    <div class="form-group">
+                        <label>2. แผนก / ฝ่าย ของท่าน <span class="req">*</span></label>
+                        <select id="department" class="form-control" required>
+                            <option value="">-- เลือกแผนก --</option>
+                            <option value="แผนกขับรถส่งสินค้า">แผนกขับรถส่งสินค้า</option>
+                            <option value="หน่วยซ่อมบำรุงรถบรรทุก">หน่วยซ่อมบำรุงรถบรรทุก (ช่างซ่อม)</option>
+                            <option value="แผนกขนส่ง / วางแผนกลาง">แผนกขนส่ง / วางแผนกลาง</option>
+                            <option value="แผนกธุรการ (ขนส่ง/ซ่อมบำรุง)">แผนกธุรการ (ขนส่ง/ซ่อมบำรุง)</option>
+                            <option value="ความปลอดภัย (จป.)">ความปลอดภัย (จป.)</option>
+                            <option value="แม่บ้าน">แม่บ้าน</option>
+                            <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                    </div>
+
+                    <!-- Q3 -->
+                    <div class="form-group">
+                        <label>3. จุดที่พบเหตุการณ์ / สถานที่ <span class="req">*</span></label>
+                        <select id="location" class="form-control" required>
+                            <option value="">-- เลือกสถานที่ --</option>
+                            <option value="บนถนน / เส้นทางขนส่ง">บนถนน / เส้นทางขนส่ง (ขณะขับรถส่งสินค้า)</option>
+                            <option value="หน้างานลูกค้า / จุดรับ-ส่งสินค้า">หน้างานลูกค้า / จุดรับ-ส่งสินค้า</option>
+                            <option value="อู่ซ่อมบำรุง / พื้นที่ซ่อมรถบรรทุก">อู่ซ่อมบำรุง / พื้นที่ซ่อมรถบรรทุก (Workshop)</option>
+                            <option value="ลานจอดรถบรรทุก">ลานจอดรถบรรทุก / พื้นที่จอดรถ</option>
+                            <option value="ปั๊มน้ำมัน / จุดแวะพักรถ">ปั๊มน้ำมัน / จุดแวะพักรถ</option>
+                            <option value="สำนักงาน / ห้องพักพนักงาน">สำนักงาน / ห้องพักพนักงานขับรถ / ห้องน้ำ</option>
+                            <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                    </div>
+
+                    <!-- Q4 -->
+                    <div class="form-group">
+                        <label>4. เล่าเหตุการณ์ที่พบเห็น (เกิดอะไรขึ้น?) <span class="req">*</span></label>
+                        <span class="hint">อธิบายสั้นๆ เช่น สายไฟสปอตไลท์ชำรุด, คราบน้ำมันเปียกพื้นอู่, รถตัดหน้า</span>
+                        <textarea id="description" class="form-control" placeholder="พิมพ์อธิบายเหตุการณ์ที่พบเห็น..." required></textarea>
+                    </div>
+
+                    <!-- Q5 -->
+                    <div class="form-group">
+                        <label>5. รูปถ่ายหน้างาน (ถ้ามี)</label>
+                        <div class="file-box" onclick="document.getElementById('fileInput').click()">
+                            <div style="font-size: 28px;">📷</div>
+                            <div style="font-size: 13px; color: var(--primary); font-weight: 500;">แตะเพื่อถ่ายรูป หรือเลือกรูปจากมือถือ</div>
+                            <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFile(event)">
+                            <img id="imgPreview" class="preview-img" alt="Preview">
+                        </div>
+                    </div>
+
+                    <!-- Q6 -->
+                    <div class="form-group">
+                        <label>6. ท่านได้แก้ไขเบื้องต้นแล้วหรือยัง? <span class="req">*</span></label>
+                        <div class="radio-card">
+                            <input type="radio" name="action_taken" value="ยังไม่ได้แก้ไข" checked>
+                            <div>
+                                <b>ยังไม่ได้แก้ไข</b>
+                                <div style="font-size: 12px; color: var(--text-muted);">แจ้งเพื่อให้ทีม Safety / ช่าง ไปดูหน้างาน</div>
+                            </div>
+                        </div>
+                        <div class="radio-card">
+                            <input type="radio" name="action_taken" value="แก้ไขเบื้องต้นทันทีแล้ว">
+                            <div>
+                                <b>แก้ไขเบื้องต้นทันทีแล้ว (Stop & Fix)</b>
+                                <div style="font-size: 12px; color: var(--success); font-weight: 500;">เช่น ขยับของออกจากทางเดิน, เช็ดคราบน้ำมัน 🌟 [+1 คะแนนโบนัส]</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q7 -->
+                    <div class="form-group">
+                        <label>7. ข้อเสนอแนะในการป้องกัน (ถ้ามี)</label>
+                        <span class="hint">เช่น ควรติดตั้งป้ายเตือนจุดอับ, ควรเปลี่ยนอุปกรณ์ใหม่</span>
+                        <textarea id="suggestion" class="form-control" placeholder="ข้อเสนอแนะเพิ่มเติม..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary">🚀 ส่งรายงาน Near Miss</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 2: ADMIN DASHBOARD -->
+    <div id="viewAdmin" class="main-container wide" style="display: none;">
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h2>📊 ตารางประเมินคะแนน & สรุปผลรางวัลประจำเดือน 🔒</h2>
+                    <p>ระบบคำนวณคะแนนเต็ม 10 คะแนน (+2 โบนัส) และจัดอันดับผู้ชนะ 16 รางวัลให้อัตโนมัติ</p>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn-excel" onclick="exportToCSV()">📥 Export to Excel (CSV)</button>
+                    <button onclick="logoutAdmin()" style="background: #666; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;">🔒 ออกจากระบบ</button>
+                </div>
+            </div>
+            <div class="card-body" style="overflow-x: auto;">
+                <table id="adminTable">
+                    <thead>
+                        <tr>
+                            <th>อันดับ</th>
+                            <th>วันที่/เวลา</th>
+                            <th>รหัส-ชื่อ</th>
+                            <th>แผนก</th>
+                            <th>สถานที่</th>
+                            <th>เหตุการณ์ Near Miss</th>
+                            <th>รูป</th>
+                            <th>เสี่ยง (3)</th>
+                            <th>ข้อมูล (3)</th>
+                            <th>แก้ไข (4)</th>
+                            <th>โบนัส (+2)</th>
+                            <th>คะแนนรวม</th>
+                            <th>การกระทำ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Dynamic rows will render here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_PIN = "4567";
+        let isAdminLoggedIn = false;
+
+        // Mock Initial Data for testing
+        let reportsData = JSON.parse(localStorage.getItem('near_miss_data')) || [
+            {
+                id: 1,
+                timestamp: '05/08/2026 09:15',
+                empInfo: '65012 นายสมชาย ใจดี',
+                department: 'แผนกขับรถส่งสินค้า',
+                location: 'บนถนน / เส้นทางขนส่ง',
+                description: 'สายไฟสปอตไลท์ส่องสว่างท้ายรถบรรทุกชำรุด มีทองแดงโผล่เสี่ยงไฟช็อต',
+                image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=150&auto=format&fit=crop',
+                actionTaken: 'แก้ไขเบื้องต้นทันทีแล้ว',
+                suggestion: 'ควรเปลี่ยนสายไฟหุ้มฉนวนแบบทนความร้อนใหม่',
+                scoreRisk: 3,
+                scoreData: 3,
+                scoreAction: 4,
+                scoreBonus: 1
+            },
+            {
+                id: 2,
+                timestamp: '05/08/2026 10:30',
+                empInfo: '65044 นายวิชัย ซ่อมดี',
+                department: 'หน่วยซ่อมบำรุงรถบรรทุก',
+                location: 'อู่ซ่อมบำรุง / พื้นที่ซ่อมรถบรรทุก',
+                description: 'มีคราบน้ำมันเครื่องหกล้นเปียกพื้นบริเวณบันไดทางขึ้นอู่ซ่อม',
+                image: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=150&auto=format&fit=crop',
+                actionTaken: 'แก้ไขเบื้องต้นทันทีแล้ว',
+                suggestion: 'นำทรายซับน้ำมันมาเทและทำความสะอาดเรียบร้อยแล้ว',
+                scoreRisk: 2,
+                scoreData: 3,
+                scoreAction: 3,
+                scoreBonus: 1
+            }
+        ];
+
+        let currentBase64Image = '';
+
+        function requestAdminAccess() {
+            if (isAdminLoggedIn) {
+                switchView('admin');
+                return;
+            }
+
+            Swal.fire({
+                title: '🔒 ใส่รหัสผ่านหลังบ้าน',
+                text: 'สำหรับทีม Safety / คณะกรรมการประเมินคะแนน',
+                input: 'password',
+                inputAttributes: {
+                    maxlength: 10,
+                    autocapitalize: 'off',
+                    autocorrect: 'off'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'เข้าสู่ระบบ',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#0078d4'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (result.value === ADMIN_PIN) {
+                        isAdminLoggedIn = true;
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'เข้าสู่ระบบสำเร็จ!',
+                            timer: 1200,
+                            showConfirmButton: false
+                        });
+                        switchView('admin');
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'รหัสผ่านไม่ถูกต้อง!',
+                            text: 'กรุณาลองใหม่อีกครั้ง',
+                            confirmButtonColor: '#d13438'
+                        });
+                    }
+                }
+            });
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            switchView('user');
+            Swal.fire({
+                icon: 'info',
+                title: 'ออกจากระบบหลังบ้านแล้ว',
+                timer: 1200,
+                showConfirmButton: false
+            });
+        }
+
+        function switchView(mode) {
+            if (mode === 'user') {
+                document.getElementById('viewUser').style.display = 'block';
+                document.getElementById('viewAdmin').style.display = 'none';
+                document.getElementById('btnModeForm').classList.add('active');
+                document.getElementById('btnModeAdmin').classList.remove('active');
+            } else if (mode === 'admin') {
+                document.getElementById('viewUser').style.display = 'none';
+                document.getElementById('viewAdmin').style.display = 'block';
+                document.getElementById('btnModeForm').classList.remove('active');
+                document.getElementById('btnModeAdmin').classList.add('active');
+                renderAdminTable();
+            }
+        }
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    currentBase64Image = evt.target.result;
+                    const img = document.getElementById('imgPreview');
+                    img.src = currentBase64Image;
+                    img.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function submitReport(e) {
+            e.preventDefault();
+
+            const actionVal = document.querySelector('input[name="action_taken"]:checked').value;
+            const newReport = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleString('th-TH'),
+                empInfo: document.getElementById('empInfo').value,
+                department: document.getElementById('department').value,
+                location: document.getElementById('location').value,
+                description: document.getElementById('description').value,
+                image: currentBase64Image || 'https://via.placeholder.com/150?text=No+Photo',
+                actionTaken: actionVal,
+                suggestion: document.getElementById('suggestion').value,
+                scoreRisk: 0,
+                scoreData: 0,
+                scoreAction: 0,
+                scoreBonus: (actionVal === 'แก้ไขเบื้องต้นทันทีแล้ว') ? 1 : 0
+            };
+
+            reportsData.unshift(newReport);
+            localStorage.setItem('near_miss_data', JSON.stringify(reportsData));
+
+            Swal.fire({
+                icon: 'success',
+                title: 'ส่งรายงานสำเร็จ!',
+                text: 'ขอบคุณที่ร่วมสร้างความปลอดภัยให้องค์กรของเรา',
+                confirmButtonColor: '#0078d4'
+            });
+
+            document.getElementById('nearMissForm').reset();
+            document.getElementById('imgPreview').style.display = 'none';
+            currentBase64Image = '';
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            // Sort by Total Score descending
+            const sortedData = [...reportsData].sort((a, b) => {
+                const totalA = (a.scoreRisk || 0) + (a.scoreData || 0) + (a.scoreAction || 0) + (a.scoreBonus || 0);
+                const totalB = (b.scoreRisk || 0) + (b.scoreData || 0) + (b.scoreAction || 0) + (b.scoreBonus || 0);
+                return totalB - totalA;
+            });
+
+            sortedData.forEach((item, index) => {
+                const totalScore = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
+                
+                let rankBadgeClass = 'rank-other';
+                if (index === 0) rankBadgeClass = 'rank-1';
+                else if (index === 1) rankBadgeClass = 'rank-2';
+                else if (index === 2) rankBadgeClass = 'rank-3';
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="rank-badge ${rankBadgeClass}">${index + 1}</span></td>
+                    <td style="font-size: 11px; color: #666;">${item.timestamp}</td>
+                    <td><b>${item.empInfo}</b></td>
+                    <td>${item.department}</td>
+                    <td>${item.location}</td>
+                    <td style="max-width: 180px;">${item.description}</td>
+                    <td><img src="${item.image}" class="img-thumbnail" onclick="viewFullImage('${item.image}')"></td>
+                    <td><input type="number" class="score-input" min="0" max="3" value="${item.scoreRisk || 0}" onchange="updateScore(${item.id}, 'scoreRisk', this.value)"></td>
+                    <td><input type="number" class="score-input" min="0" max="3" value="${item.scoreData || 0}" onchange="updateScore(${item.id}, 'scoreData', this.value)"></td>
+                    <td><input type="number" class="score-input" min="0" max="4" value="${item.scoreAction || 0}" onchange="updateScore(${item.id}, 'scoreAction', this.value)"></td>
+                    <td><input type="number" class="score-input" min="0" max="2" value="${item.scoreBonus || 0}" onchange="updateScore(${item.id}, 'scoreBonus', this.value)"></td>
+                    <td><span class="badge-score">${totalScore}</span></td>
+                    <td><button onclick="deleteReport(${item.id})" style="background:none; border:none; color:red; cursor:pointer;">🗑️</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateScore(id, field, val) {
+            const target = reportsData.find(r => r.id === id);
+            if (target) {
+                target[field] = parseInt(val) || 0;
+                localStorage.setItem('near_miss_data', JSON.stringify(reportsData));
+                renderAdminTable();
+            }
+        }
+
+        function deleteReport(id) {
+            if (confirm('คุณต้องการลบรายการนี้ใช่หรือไม่?')) {
+                reportsData = reportsData.filter(r => r.id !== id);
+                localStorage.setItem('near_miss_data', JSON.stringify(reportsData));
+                renderAdminTable();
+            }
+        }
+
+        function viewFullImage(url) {
+            Swal.fire({
+                imageUrl: url,
+                imageAlt: 'Near Miss Photo',
+                confirmButtonColor: '#0078d4'
+            });
+        }
+
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            csvContent += "ลำดับ,วันที่เวลา,ชื่อ-รหัสพนักงาน,แผนก,สถานที่,เหตุการณ์,การแก้ไขเบื้องต้น,คะแนนรวม\n";
+
+            reportsData.forEach((item, index) => {
+                const total = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
+                let row = `"${index+1}","${item.timestamp}","${item.empInfo}","${item.department}","${item.location}","${item.description.replace(/"/g, '""')}","${item.actionTaken}","${total}"`;
+                csvContent += row + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Near_Miss_Report_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
