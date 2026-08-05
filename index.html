@@ -95,7 +95,7 @@
         }
 
         .main-container.wide {
-            max-width: 1100px;
+            max-width: 1150px;
         }
 
         .card {
@@ -212,13 +212,25 @@
             background: #e1f0ff;
         }
 
-        .preview-img {
-            max-width: 100%;
-            max-height: 160px;
+        .preview-grid {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .preview-thumb-container {
+            position: relative;
+            width: 90px;
+            height: 90px;
+        }
+
+        .preview-thumb {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             border-radius: 8px;
-            margin-top: 10px;
-            display: none;
+            border: 1px solid var(--border);
         }
 
         .btn-primary {
@@ -311,12 +323,31 @@
             font-weight: 600;
         }
 
+        .audit-select {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .audit-pending { background: #fff4ce; color: #795e00; }
+        .audit-approved { background: #dff6dd; color: #107c41; }
+        .audit-rejected { background: #fde8e8; color: #d13438; }
+
+        .img-thumbnail-grid {
+            display: flex;
+            gap: 4px;
+        }
+
         .img-thumbnail {
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             object-fit: cover;
             border-radius: 6px;
             cursor: pointer;
+            border: 1.5px solid var(--primary);
         }
     </style>
 </head>
@@ -391,18 +422,20 @@
 
                     <!-- Q5 -->
                     <div class="form-group">
-                        <label>5. รูปถ่ายหน้างาน (ถ้ามี)</label>
+                        <label>5. รูปถ่ายหน้างาน (แนบได้สูงสุด 3 รูป)</label>
+                        <span class="hint">📸 สามารถแนบรูปจุดเกิดเหตุ และ รูปหลังการแก้ไข (Before & After) ได้สูงสุด 3 รูป</span>
                         <div class="file-box" onclick="document.getElementById('fileInput').click()">
                             <div style="font-size: 28px;">📷</div>
-                            <div style="font-size: 13px; color: var(--primary); font-weight: 500;">แตะเพื่อถ่ายรูป หรือเลือกรูปจากมือถือ</div>
-                            <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFile(event)">
-                            <img id="imgPreview" class="preview-img" alt="Preview">
+                            <div style="font-size: 13px; color: var(--primary); font-weight: 500;">แตะเพื่อถ่ายรูป หรือเลือกรูปจากมือถือ (สูงสุด 3 รูป)</div>
+                            <input type="file" id="fileInput" accept="image/*" multiple style="display:none;" onchange="handleMultipleFiles(event)">
+                            <div id="previewGrid" class="preview-grid"></div>
                         </div>
                     </div>
 
                     <!-- Q6 -->
                     <div class="form-group">
                         <label>6. เมื่อพบเห็นความเสี่ยง ท่านได้ปฏิบัติตัวอย่างไรเบื้องต้น? <span class="req">*</span></label>
+                        <span class="hint">🔍 หมายเหตุ: คะแนนโบนัส +1 จะได้รับการอนุมัติหลังจากทีม Safety ตรวจสอบหลักฐานเรียบร้อยแล้ว</span>
                         <div class="radio-card">
                             <input type="radio" name="action_taken" value="แจ้งเรื่องเข้าระบบอย่างเดียว" checked>
                             <div>
@@ -444,8 +477,8 @@
         <div class="card">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <div>
-                    <h2>📊 ตารางประเมินคะแนน & สรุปผลรางวัลประจำเดือน 🔒</h2>
-                    <p>ระบบคำนวณคะแนนเต็ม 10 คะแนน (+2 โบนัส) และจัดอันดับผู้ชนะ 16 รางวัลให้อัตโนมัติ</p>
+                    <h2>📊 ตารางประเมินคะแนน & ตรวจสอบอนุมัติโบนัส 🔒</h2>
+                    <p>ทีม Safety สามารถตรวจสอบรูปถ่ายหลักฐาน และอนุมัติคะแนนโบนัสได้ในตาราง</p>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <button class="btn-excel" onclick="exportToCSV()">📥 Export to Excel (CSV)</button>
@@ -462,7 +495,8 @@
                             <th>แผนก</th>
                             <th>สถานที่</th>
                             <th>เหตุการณ์ Near Miss</th>
-                            <th>รูป</th>
+                            <th>รูปหลักฐาน (แตะดูรูปใหญ่)</th>
+                            <th>การตรวจอนุมัติโบนัส</th>
                             <th>เสี่ยง (3)</th>
                             <th>ข้อมูล (3)</th>
                             <th>แก้ไข (4)</th>
@@ -482,6 +516,7 @@
     <script>
         const ADMIN_PIN = "4567";
         let isAdminLoggedIn = false;
+        let uploadedImagesBase64 = [];
 
         // Mock Initial Data for testing
         let reportsData = JSON.parse(localStorage.getItem('near_miss_data')) || [
@@ -492,9 +527,10 @@
                 department: 'แผนกขับรถส่งสินค้า',
                 location: 'บนถนน / เส้นทางขนส่ง',
                 description: 'สายไฟสปอตไลท์ส่องสว่างท้ายรถบรรทุกชำรุด มีทองแดงโผล่เสี่ยงไฟช็อต',
-                image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=150&auto=format&fit=crop',
+                images: ['https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=150&auto=format&fit=crop'],
                 actionTaken: 'ปฏิบัติการความปลอดภัยทันที (Safety Action)',
                 suggestion: 'ควรเปลี่ยนสายไฟหุ้มฉนวนแบบทนความร้อนใหม่',
+                auditStatus: 'approved',
                 scoreRisk: 3,
                 scoreData: 3,
                 scoreAction: 4,
@@ -507,17 +543,19 @@
                 department: 'หน่วยซ่อมบำรุงรถบรรทุก',
                 location: 'อู่ซ่อมบำรุง / พื้นที่ซ่อมรถบรรทุก',
                 description: 'มีคราบน้ำมันเครื่องหกล้นเปียกพื้นบริเวณบันไดทางขึ้นอู่ซ่อม',
-                image: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=150&auto=format&fit=crop',
+                images: [
+                    'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=150&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1581092335397-9583fe92d232?w=150&auto=format&fit=crop'
+                ],
                 actionTaken: 'จัดการแก้ไขจุดเสี่ยงสำเร็จทันที (Stop & Fix)',
                 suggestion: 'นำทรายซับน้ำมันมาเทและทำความสะอาดเรียบร้อยแล้ว',
+                auditStatus: 'approved',
                 scoreRisk: 2,
                 scoreData: 3,
                 scoreAction: 3,
                 scoreBonus: 1
             }
         ];
-
-        let currentBase64Image = '';
 
         function requestAdminAccess() {
             if (isAdminLoggedIn) {
@@ -587,18 +625,24 @@
             }
         }
 
-        function handleFile(e) {
-            const file = e.target.files[0];
-            if (file) {
+        function handleMultipleFiles(e) {
+            const files = Array.from(e.target.files).slice(0, 3); // Max 3 files
+            uploadedImagesBase64 = [];
+            const previewGrid = document.getElementById('previewGrid');
+            previewGrid.innerHTML = '';
+
+            files.forEach((file) => {
                 const reader = new FileReader();
                 reader.onload = function(evt) {
-                    currentBase64Image = evt.target.result;
-                    const img = document.getElementById('imgPreview');
-                    img.src = currentBase64Image;
-                    img.style.display = 'block';
+                    uploadedImagesBase64.push(evt.target.result);
+
+                    const div = document.createElement('div');
+                    div.className = 'preview-thumb-container';
+                    div.innerHTML = `<img src="${evt.target.result}" class="preview-thumb">`;
+                    previewGrid.appendChild(div);
                 };
                 reader.readAsDataURL(file);
-            }
+            });
         }
 
         function submitReport(e) {
@@ -614,9 +658,10 @@
                 department: document.getElementById('department').value,
                 location: document.getElementById('location').value,
                 description: document.getElementById('description').value,
-                image: currentBase64Image || 'https://via.placeholder.com/150?text=No+Photo',
+                images: uploadedImagesBase64.length > 0 ? uploadedImagesBase64 : ['https://via.placeholder.com/150?text=No+Photo'],
                 actionTaken: actionVal,
                 suggestion: document.getElementById('suggestion').value,
+                auditStatus: isBonusAction ? 'pending' : 'none',
                 scoreRisk: 0,
                 scoreData: 0,
                 scoreAction: 0,
@@ -634,8 +679,8 @@
             });
 
             document.getElementById('nearMissForm').reset();
-            document.getElementById('imgPreview').style.display = 'none';
-            currentBase64Image = '';
+            document.getElementById('previewGrid').innerHTML = '';
+            uploadedImagesBase64 = [];
         }
 
         function renderAdminTable() {
@@ -657,6 +702,19 @@
                 else if (index === 1) rankBadgeClass = 'rank-2';
                 else if (index === 2) rankBadgeClass = 'rank-3';
 
+                const currentAudit = item.auditStatus || 'pending';
+                let auditClass = 'audit-pending';
+                if (currentAudit === 'approved') auditClass = 'audit-approved';
+                if (currentAudit === 'rejected') auditClass = 'audit-rejected';
+
+                // Handle multiple images rendering
+                const imagesList = item.images || (item.image ? [item.image] : []);
+                let imgHtml = '<div class="img-thumbnail-grid">';
+                imagesList.forEach((imgUrl, i) => {
+                    imgHtml += `<img src="${imgUrl}" class="img-thumbnail" title="รูปที่ ${i+1}" onclick="viewFullImages(${item.id}, ${i})">`;
+                });
+                imgHtml += '</div>';
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><span class="rank-badge ${rankBadgeClass}">${index + 1}</span></td>
@@ -665,7 +723,14 @@
                     <td>${item.department}</td>
                     <td>${item.location}</td>
                     <td style="max-width: 180px;">${item.description}</td>
-                    <td><img src="${item.image}" class="img-thumbnail" onclick="viewFullImage('${item.image}')"></td>
+                    <td>${imgHtml}</td>
+                    <td>
+                        <select class="audit-select ${auditClass}" onchange="changeAuditStatus(${item.id}, this.value)">
+                            <option value="pending" ${currentAudit === 'pending' ? 'selected' : ''}>⏳ รอตรวจสอบ</option>
+                            <option value="approved" ${currentAudit === 'approved' ? 'selected' : ''}>✅ อนุมัติโบนัส (+1)</option>
+                            <option value="rejected" ${currentAudit === 'rejected' ? 'selected' : ''}>❌ ไม่อนุมัติโบนัส (0)</option>
+                        </select>
+                    </td>
                     <td><input type="number" class="score-input" min="0" max="3" value="${item.scoreRisk || 0}" onchange="updateScore(${item.id}, 'scoreRisk', this.value)"></td>
                     <td><input type="number" class="score-input" min="0" max="3" value="${item.scoreData || 0}" onchange="updateScore(${item.id}, 'scoreData', this.value)"></td>
                     <td><input type="number" class="score-input" min="0" max="4" value="${item.scoreAction || 0}" onchange="updateScore(${item.id}, 'scoreAction', this.value)"></td>
@@ -675,6 +740,20 @@
                 `;
                 tbody.appendChild(row);
             });
+        }
+
+        function changeAuditStatus(id, newStatus) {
+            const target = reportsData.find(r => r.id === id);
+            if (target) {
+                target.auditStatus = newStatus;
+                if (newStatus === 'approved') {
+                    target.scoreBonus = 1;
+                } else if (newStatus === 'rejected') {
+                    target.scoreBonus = 0;
+                }
+                localStorage.setItem('near_miss_data', JSON.stringify(reportsData));
+                renderAdminTable();
+            }
         }
 
         function updateScore(id, field, val) {
@@ -694,9 +773,13 @@
             }
         }
 
-        function viewFullImage(url) {
+        function viewFullImages(id, index) {
+            const target = reportsData.find(r => r.id === id);
+            const imagesList = target.images || (target.image ? [target.image] : []);
+            
             Swal.fire({
-                imageUrl: url,
+                title: `รูปถ่ายหลักฐาน (${index + 1}/${imagesList.length})`,
+                imageUrl: imagesList[index],
                 imageAlt: 'Near Miss Photo',
                 confirmButtonColor: '#0078d4'
             });
@@ -704,11 +787,12 @@
 
         function exportToCSV() {
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-            csvContent += "ลำดับ,วันที่เวลา,ชื่อ-รหัสพนักงาน,แผนก,สถานที่,เหตุการณ์,การแก้ไขเบื้องต้น,คะแนนรวม\n";
+            csvContent += "ลำดับ,วันที่เวลา,ชื่อ-รหัสพนักงาน,แผนก,สถานที่,เหตุการณ์,การแก้ไขเบื้องต้น,จำนวนรูปถ่าย,สถานะการอนุมัติโบนัส,คะแนนรวม\n";
 
             reportsData.forEach((item, index) => {
                 const total = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
-                let row = `"${index+1}","${item.timestamp}","${item.empInfo}","${item.department}","${item.location}","${item.description.replace(/"/g, '""')}","${item.actionTaken}","${total}"`;
+                const countImgs = (item.images ? item.images.length : 1);
+                let row = `"${index+1}","${item.timestamp}","${item.empInfo}","${item.department}","${item.location}","${item.description.replace(/"/g, '""')}","${item.actionTaken}","${countImgs} รูป","${item.auditStatus || 'pending'}","${total}"`;
                 csvContent += row + "\n";
             });
 
