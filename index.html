@@ -402,27 +402,34 @@
 
                     <!-- Q6 -->
                     <div class="form-group">
-                        <label>6. ท่านได้แก้ไขเบื้องต้นแล้วหรือยัง? <span class="req">*</span></label>
+                        <label>6. เมื่อพบเห็นความเสี่ยง ท่านได้ปฏิบัติตัวอย่างไรเบื้องต้น? <span class="req">*</span></label>
                         <div class="radio-card">
-                            <input type="radio" name="action_taken" value="ยังไม่ได้แก้ไข" checked>
+                            <input type="radio" name="action_taken" value="แจ้งเรื่องเข้าระบบอย่างเดียว" checked>
                             <div>
-                                <b>ยังไม่ได้แก้ไข</b>
-                                <div style="font-size: 12px; color: var(--text-muted);">แจ้งเพื่อให้ทีม Safety / ช่าง ไปดูหน้างาน</div>
+                                <b>แจ้งเรื่องเข้าระบบอย่างเดียว</b>
+                                <div style="font-size: 12px; color: var(--text-muted);">ไม่ได้ปฏิบัติการอื่น แจ้งเพื่อให้ทีม Safety / หัวหน้างาน เข้าไปตรวจสอบ</div>
                             </div>
                         </div>
                         <div class="radio-card">
-                            <input type="radio" name="action_taken" value="แก้ไขเบื้องต้นทันทีแล้ว">
+                            <input type="radio" name="action_taken" value="ปฏิบัติการความปลอดภัยทันที (Safety Action)">
                             <div>
-                                <b>แก้ไขเบื้องต้นทันทีแล้ว (Stop & Fix)</b>
-                                <div style="font-size: 12px; color: var(--success); font-weight: 500;">เช่น ขยับของออกจากทางเดิน, เช็ดคราบน้ำมัน 🌟 [+1 คะแนนโบนัส]</div>
+                                <b>ปฏิบัติการความปลอดภัยทันที (Safety Action)</b>
+                                <div style="font-size: 12px; color: var(--success); font-weight: 500;">เช่น ชะลอจอดจุดปลอดภัย, โทรแจ้ง จป./หัวหน้าขนส่งทันที 🌟 [+1 คะแนนโบนัส]</div>
+                            </div>
+                        </div>
+                        <div class="radio-card">
+                            <input type="radio" name="action_taken" value="จัดการแก้ไขจุดเสี่ยงสำเร็จทันที (Stop & Fix)">
+                            <div>
+                                <b>จัดการแก้ไขจุดเสี่ยงสำเร็จทันที (Stop & Fix)</b>
+                                <div style="font-size: 12px; color: var(--success); font-weight: 500;">เช่น เช็ดคราบน้ำมัน, ขยับของออกจากทางเดิน, นำหมอนรองล้อมากั้น 🌟 [+1 คะแนนโบนัส]</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Q7 -->
                     <div class="form-group">
-                        <label>7. ข้อเสนอแนะในการป้องกัน (ถ้ามี)</label>
-                        <span class="hint">เช่น ควรติดตั้งป้ายเตือนจุดอับ, ควรเปลี่ยนอุปกรณ์ใหม่</span>
+                        <label>7. ข้อเสนอแนวทางป้องกันระยะยาว (ถ้ามี)</label>
+                        <span class="hint">เช่น ควรติดตั้งป้ายเตือนจุดอับ, ควรเปลี่ยนอุปกรณ์ใหม่, ควรทำกั้นโซน</span>
                         <textarea id="suggestion" class="form-control" placeholder="ข้อเสนอแนะเพิ่มเติม..."></textarea>
                     </div>
 
@@ -486,7 +493,7 @@
                 location: 'บนถนน / เส้นทางขนส่ง',
                 description: 'สายไฟสปอตไลท์ส่องสว่างท้ายรถบรรทุกชำรุด มีทองแดงโผล่เสี่ยงไฟช็อต',
                 image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=150&auto=format&fit=crop',
-                actionTaken: 'แก้ไขเบื้องต้นทันทีแล้ว',
+                actionTaken: 'ปฏิบัติการความปลอดภัยทันที (Safety Action)',
                 suggestion: 'ควรเปลี่ยนสายไฟหุ้มฉนวนแบบทนความร้อนใหม่',
                 scoreRisk: 3,
                 scoreData: 3,
@@ -501,7 +508,7 @@
                 location: 'อู่ซ่อมบำรุง / พื้นที่ซ่อมรถบรรทุก',
                 description: 'มีคราบน้ำมันเครื่องหกล้นเปียกพื้นบริเวณบันไดทางขึ้นอู่ซ่อม',
                 image: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=150&auto=format&fit=crop',
-                actionTaken: 'แก้ไขเบื้องต้นทันทีแล้ว',
+                actionTaken: 'จัดการแก้ไขจุดเสี่ยงสำเร็จทันที (Stop & Fix)',
                 suggestion: 'นำทรายซับน้ำมันมาเทและทำความสะอาดเรียบร้อยแล้ว',
                 scoreRisk: 2,
                 scoreData: 3,
@@ -598,6 +605,8 @@
             e.preventDefault();
 
             const actionVal = document.querySelector('input[name="action_taken"]:checked').value;
+            const isBonusAction = (actionVal.includes('Safety Action') || actionVal.includes('Stop & Fix'));
+
             const newReport = {
                 id: Date.now(),
                 timestamp: new Date().toLocaleString('th-TH'),
@@ -611,7 +620,7 @@
                 scoreRisk: 0,
                 scoreData: 0,
                 scoreAction: 0,
-                scoreBonus: (actionVal === 'แก้ไขเบื้องต้นทันทีแล้ว') ? 1 : 0
+                scoreBonus: isBonusAction ? 1 : 0
             };
 
             reportsData.unshift(newReport);
