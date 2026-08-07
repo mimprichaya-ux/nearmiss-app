@@ -389,9 +389,9 @@
                 <form id="nearMissForm" onsubmit="submitReport(event)">
                     <!-- Q1 -->
                     <div class="form-group">
-                        <label>1. รหัสพนักงาน และ ชื่อ-นามสกุล <span class="req">*</span></label>
-                        <span class="hint">(ตัวอย่าง: 65012 สมชาย ใจดี)</span>
-                        <input type="text" id="empInfo" class="form-control" placeholder="พิมพ์รหัสพนักงาน และ ชื่อ-นามสกุล" required>
+                        <label>1. ชื่อ - นามสกุล <span class="req">*</span></label>
+                        <span class="hint">(ตัวอย่าง: สมชาย ใจดี)</span>
+                        <input type="text" id="empInfo" class="form-control" placeholder="พิมพ์ชื่อ - นามสกุล" required>
                     </div>
 
                     <!-- Q2 -->
@@ -488,8 +488,8 @@
         <div class="card">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <div>
-                    <h2>📊 ตารางประเมินคะแนน & จัดอันดับแยกสายงาน 🔒</h2>
-                    <p>เลือกกรองสายงานเพื่อจัดอันดับและแจกรางวัลแยกตามโควต้า (สายปฏิบัติการ VS สายสนับสนุน)</p>
+                    <h2>📊 ตารางประเมินคะแนน (9 คะแนนหลัก + 1 โบนัส = เต็ม 10) 🔒</h2>
+                    <p>เกณฑ์: เสี่ยง (3) + ข้อมูล (3) + แก้ไข (3) = 9 คะแนนหลัก + โบนัสอนุมัติ (+1) = คะแนนรวมเต็ม 10 คะแนนพอดี</p>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <button class="btn-excel" onclick="exportToCSV()">📥 Export to Excel (CSV)</button>
@@ -513,7 +513,7 @@
                         <tr>
                             <th>อันดับ</th>
                             <th>วันที่/เวลา</th>
-                            <th>รหัส-ชื่อ</th>
+                            <th>ชื่อ - นามสกุล</th>
                             <th>แผนก</th>
                             <th>สถานที่</th>
                             <th>เหตุการณ์ Near Miss</th>
@@ -521,9 +521,9 @@
                             <th>การตรวจอนุมัติโบนัส</th>
                             <th>เสี่ยง (3)</th>
                             <th>ข้อมูล (3)</th>
-                            <th>แก้ไข (4)</th>
-                            <th>โบนัส (+2)</th>
-                            <th>คะแนนรวม</th>
+                            <th>แก้ไข (3)</th>
+                            <th>โบนัส (+1)</th>
+                            <th>คะแนนรวม (10)</th>
                             <th>การกระทำ</th>
                         </tr>
                     </thead>
@@ -545,7 +545,7 @@
             {
                 id: 1,
                 timestamp: '05/08/2026 09:15',
-                empInfo: '65012 นายสมชาย ใจดี',
+                empInfo: 'นายสมชาย ใจดี',
                 department: 'แผนกขับรถส่งสินค้า',
                 location: 'บนถนน / เส้นทางขนส่ง',
                 description: 'สายไฟสปอตไลท์ส่องสว่างท้ายรถบรรทุกชำรุด มีทองแดงโผล่เสี่ยงไฟช็อต',
@@ -555,13 +555,13 @@
                 auditStatus: 'approved',
                 scoreRisk: 3,
                 scoreData: 3,
-                scoreAction: 4,
+                scoreAction: 3,
                 scoreBonus: 1
             },
             {
                 id: 2,
                 timestamp: '05/08/2026 10:30',
-                empInfo: '65044 นายวิชัย ซ่อมดี',
+                empInfo: 'นายวิชัย ซ่อมดี',
                 department: 'หน่วยซ่อมบำรุงรถบรรทุก',
                 location: 'อู่ซ่อมบำรุง / พื้นที่ซ่อมรถบรรทุก',
                 description: 'มีคราบน้ำมันเครื่องหกล้นเปียกพื้นบริเวณบันไดทางขึ้นอู่ซ่อม',
@@ -580,7 +580,7 @@
             {
                 id: 3,
                 timestamp: '05/08/2026 11:10',
-                empInfo: '65099 นางสาวมณี รักสงบ',
+                empInfo: 'นางสาวมณี รักสงบ',
                 department: 'แผนกธุรการ (ขนส่ง/ซ่อมบำรุง)',
                 location: 'สำนักงาน / ห้องพักพนักงาน',
                 description: 'สายปลั๊กพ่วงพัดลมในห้องธุรการชำรุด มีรอยไหม้ตรงเต้ารับ',
@@ -783,8 +783,8 @@
                     </td>
                     <td><input type="number" class="score-input" min="0" max="3" value="${item.scoreRisk || 0}" onchange="updateScore(${item.id}, 'scoreRisk', this.value)"></td>
                     <td><input type="number" class="score-input" min="0" max="3" value="${item.scoreData || 0}" onchange="updateScore(${item.id}, 'scoreData', this.value)"></td>
-                    <td><input type="number" class="score-input" min="0" max="4" value="${item.scoreAction || 0}" onchange="updateScore(${item.id}, 'scoreAction', this.value)"></td>
-                    <td><input type="number" class="score-input" min="0" max="2" value="${item.scoreBonus || 0}" onchange="updateScore(${item.id}, 'scoreBonus', this.value)"></td>
+                    <td><input type="number" class="score-input" min="0" max="3" value="${item.scoreAction || 0}" onchange="updateScore(${item.id}, 'scoreAction', this.value)"></td>
+                    <td><input type="number" class="score-input" min="0" max="1" value="${item.scoreBonus || 0}" onchange="updateScore(${item.id}, 'scoreBonus', this.value)"></td>
                     <td><span class="badge-score">${totalScore}</span></td>
                     <td><button onclick="deleteReport(${item.id})" style="background:none; border:none; color:red; cursor:pointer;">🗑️</button></td>
                 `;
@@ -837,7 +837,7 @@
 
         function exportToCSV() {
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-            csvContent += "ลำดับ,วันที่เวลา,ชื่อ-รหัสพนักงาน,แผนก,สถานที่,เหตุการณ์,การแก้ไขเบื้องต้น,จำนวนรูปถ่าย,สถานะการอนุมัติโบนัส,คะแนนรวม\n";
+            csvContent += "ลำดับ,วันที่เวลา,ชื่อ-นามสกุล,แผนก,สถานที่,เหตุการณ์,การแก้ไขเบื้องต้น,จำนวนรูปถ่าย,สถานะการอนุมัติโบนัส,คะแนนรวม\n";
 
             reportsData.forEach((item, index) => {
                 const total = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
