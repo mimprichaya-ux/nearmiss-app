@@ -269,6 +269,24 @@
             background: #0b5f30;
         }
 
+        .btn-print {
+            background: #495057;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-print:hover {
+            background: #212529;
+        }
+
         /* Admin Table Styles */
         table {
             width: 100%;
@@ -323,18 +341,24 @@
             font-weight: 600;
         }
 
-        .audit-select {
-            padding: 4px 8px;
-            border-radius: 6px;
+        .bonus-tag-active {
+            background: #dff6dd;
+            color: #107c41;
+            padding: 3px 8px;
+            border-radius: 10px;
             font-size: 11px;
             font-weight: 600;
-            border: 1px solid var(--border);
-            cursor: pointer;
+            display: inline-block;
         }
 
-        .audit-pending { background: #fff4ce; color: #795e00; }
-        .audit-approved { background: #dff6dd; color: #107c41; }
-        .audit-rejected { background: #fde8e8; color: #d13438; }
+        .bonus-tag-single {
+            background: #f3f2f1;
+            color: #605e5c;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            display: inline-block;
+        }
 
         .img-thumbnail-grid {
             display: flex;
@@ -359,6 +383,142 @@
             border-radius: 10px;
             margin-bottom: 15px;
             border: 1px solid #b3d6fc;
+        }
+
+        /* Printable Report Styles */
+        #printableReportArea {
+            display: none;
+            background: white;
+            padding: 30px 40px;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            color: #000;
+        }
+
+        .print-header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .print-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #000;
+        }
+
+        .print-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .print-summary-box {
+            display: flex;
+            justify-content: space-around;
+            border: 1px solid #000;
+            padding: 12px;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+        }
+
+        .print-stat-item {
+            text-align: center;
+        }
+
+        .print-stat-value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .print-stat-label {
+            font-size: 12px;
+            color: #444;
+        }
+
+        .print-section-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 20px 0 10px;
+            border-bottom: 1px dashed #666;
+            padding-bottom: 4px;
+        }
+
+        .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            font-size: 12px;
+        }
+
+        .print-table th, .print-table td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            color: #000;
+        }
+
+        .print-table th {
+            background-color: #f0f0f0 !important;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* Official Signatures Section */
+        .signature-container {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            page-break-inside: avoid;
+        }
+
+        .signature-box {
+            width: 45%;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .signature-line {
+            margin-top: 50px;
+            border-bottom: 1px dotted #000;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* PRINT MEDIA QUERIES */
+        @media print {
+            body {
+                background: white !important;
+                padding: 0 !important;
+            }
+
+            .app-bar, .main-container, .swal2-container {
+                display: none !important;
+            }
+
+            #printableReportArea {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+            }
+
+            .print-table th {
+                background-color: #e0e0e0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 15mm;
+            }
         }
     </style>
 </head>
@@ -443,10 +603,9 @@
                         </div>
                     </div>
 
-                    <!-- Q6 -->
+                    <!-- Q6 (CLEANED UP: Factual incident response without bonus hints) -->
                     <div class="form-group">
                         <label>6. เมื่อพบเห็นความเสี่ยง ท่านได้ปฏิบัติตัวอย่างไรเบื้องต้น? <span class="req">*</span></label>
-                        <span class="hint">🔍 หมายเหตุ: คะแนนโบนัส +1 จะได้รับการอนุมัติหลังจากทีม Safety ตรวจสอบหลักฐานเรียบร้อยแล้ว</span>
                         <div class="radio-card">
                             <input type="radio" name="action_taken" value="แจ้งเรื่องเข้าระบบอย่างเดียว" checked>
                             <div>
@@ -458,14 +617,14 @@
                             <input type="radio" name="action_taken" value="ปฏิบัติการความปลอดภัยทันที (Safety Action)">
                             <div>
                                 <b>ปฏิบัติการความปลอดภัยทันที (Safety Action)</b>
-                                <div style="font-size: 12px; color: var(--success); font-weight: 500;">เช่น ชะลอจอดจุดปลอดภัย, โทรแจ้ง จป./หัวหน้าขนส่งทันที 🌟 [+1 คะแนนโบนัส]</div>
+                                <div style="font-size: 12px; color: var(--primary-dark);">เช่น ชะลอจอดจุดปลอดภัยบนถนน, โทรแจ้ง จป./หัวหน้าขนส่งทันที</div>
                             </div>
                         </div>
                         <div class="radio-card">
                             <input type="radio" name="action_taken" value="จัดการแก้ไขจุดเสี่ยงสำเร็จทันที (Stop & Fix)">
                             <div>
                                 <b>จัดการแก้ไขจุดเสี่ยงสำเร็จทันที (Stop & Fix)</b>
-                                <div style="font-size: 12px; color: var(--success); font-weight: 500;">เช่น เช็ดคราบน้ำมัน, ขยับของออกจากทางเดิน, นำหมอนรองล้อมากั้น 🌟 [+1 คะแนนโบนัส]</div>
+                                <div style="font-size: 12px; color: var(--success); font-weight: 500;">เช่น เช็ดคราบน้ำมัน, ขยับของออกจากทางเดิน, นำหมอนรองล้อมากั้น</div>
                             </div>
                         </div>
                     </div>
@@ -488,11 +647,12 @@
         <div class="card">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <div>
-                    <h2>📊 ตารางประเมินคะแนน (9 คะแนนหลัก + 1 โบนัส = เต็ม 10) 🔒</h2>
-                    <p>เกณฑ์: เสี่ยง (3) + ข้อมูล (3) + แก้ไข (3) = 9 คะแนนหลัก + โบนัสอนุมัติ (+1) = คะแนนรวมเต็ม 10 คะแนนพอดี</p>
+                    <h2>📊 ตารางประเมินคะแนน (9 คะแนนหลัก + 1 โบนัสการมีส่วนร่วม = เต็ม 10) 🔒</h2>
+                    <p>เกณฑ์: เสี่ยง (3) + ข้อมูล (3) + แก้ไข (3) = 9 คะแนนหลัก | โบนัส +1 ให้ผู้ที่ส่งรายงานตั้งแต่ 2 เรื่องขึ้นไปในเดือน</p>
                 </div>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <button class="btn-excel" onclick="exportToCSV()">📥 Export to Excel (CSV)</button>
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <button class="btn-excel" onclick="exportToCSV()">📥 Export to Excel</button>
+                    <button class="btn-print" onclick="printReportDocument()">🖨️ พิมพ์รายงานสรุป (PDF)</button>
                     <button onclick="logoutAdmin()" style="background: #666; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;">🔒 ออกจากระบบ</button>
                 </div>
             </div>
@@ -518,11 +678,11 @@
                             <th>สถานที่</th>
                             <th>เหตุการณ์ Near Miss</th>
                             <th>รูปหลักฐาน (แตะดูรูปใหญ่)</th>
-                            <th>การตรวจอนุมัติโบนัส</th>
+                            <th>จำนวนเรื่องที่ส่ง</th>
                             <th>เสี่ยง (3)</th>
                             <th>ข้อมูล (3)</th>
                             <th>แก้ไข (3)</th>
-                            <th>โบนัส (+1)</th>
+                            <th>โบนัสขยัน (+1)</th>
                             <th>คะแนนรวม (10)</th>
                             <th>การกระทำ</th>
                         </tr>
@@ -531,6 +691,85 @@
                         <!-- Dynamic rows will render here -->
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- AREA FOR PRINTING / PDF REPORT EXPORT -->
+    <div id="printableReportArea">
+        <div class="print-header">
+            <h1>บริษัท สหชาติเศรษฐกิจ จำกัด (พชร. ขนส่ง & ซ่อมบำรุง)</h1>
+            <h2>รายงานสรุปประเมินผลกิจกรรม Near Miss และประกาศรางวัลประจำเดือน</h2>
+            <div style="font-size: 13px; color: #555;" id="printReportDate">ประจำเดือน: สิงหาคม 2569</div>
+        </div>
+
+        <div class="print-summary-box">
+            <div class="print-stat-item">
+                <div class="print-stat-value" id="printTotalCount">0</div>
+                <div class="print-stat-label">เหตุการณ์ที่แจ้งทั้งหมด</div>
+            </div>
+            <div class="print-stat-item">
+                <div class="print-stat-value" id="printOpsCount">0</div>
+                <div class="print-stat-label">สายปฏิบัติการ (ขนส่ง/ช่าง)</div>
+            </div>
+            <div class="print-stat-item">
+                <div class="print-stat-value" id="printOfficeCount">0</div>
+                <div class="print-stat-label">สายสนับสนุน (ออฟฟิศ)</div>
+            </div>
+            <div class="print-stat-item">
+                <div class="print-stat-value" id="printActiveCount">0</div>
+                <div class="print-stat-label">ผู้ได้รับโบนัสส่ง ≥ 2 เรื่อง</div>
+            </div>
+        </div>
+
+        <div class="print-section-title">🚛 1. สรุปผลและรางวัลสายงานปฏิบัติการ (ขนส่ง & ช่างซ่อมบำรุง) — โควต้า 11 รางวัล</div>
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th style="width: 8%;">อันดับ</th>
+                    <th style="width: 22%;">ชื่อ - นามสกุล</th>
+                    <th style="width: 20%;">แผนก</th>
+                    <th style="width: 35%;">เหตุการณ์ Near Miss ที่แจ้ง</th>
+                    <th style="width: 15%;">คะแนนรวม (10)</th>
+                </tr>
+            </thead>
+            <tbody id="printOpsTbody">
+                <!-- Filtered Ops Rows -->
+            </tbody>
+        </table>
+
+        <div class="print-section-title">🏢 2. สรุปผลและรางวัลสายงานสนับสนุน (ออฟฟิศ / ธุรการ / แม่บ้าน) — โควต้า 5 รางวัล</div>
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th style="width: 8%;">อันดับ</th>
+                    <th style="width: 22%;">ชื่อ - นามสกุล</th>
+                    <th style="width: 20%;">แผนก</th>
+                    <th style="width: 35%;">เหตุการณ์ Near Miss ที่แจ้ง</th>
+                    <th style="width: 15%;">คะแนนรวม (10)</th>
+                </tr>
+            </thead>
+            <tbody id="printOfficeTbody">
+                <!-- Filtered Office Rows -->
+            </tbody>
+        </table>
+
+        <!-- OFFICIAL SIGNATURES SECTION -->
+        <div class="signature-container">
+            <div class="signature-box">
+                <div style="font-weight: 600; margin-bottom: 10px;">ผู้รายงานและประเมินผล</div>
+                <div class="signature-line"></div>
+                <div style="margin-top: 8px;">( .................................................................... )</div>
+                <div style="font-weight: 500; margin-top: 4px;">ตำแหน่ง: เจ้าหน้าที่ความปลอดภัย ระดับวิชาชีพ</div>
+                <div style="font-size: 12px; color: #555; margin-top: 4px;">วันที่ ......... / ......... / .............</div>
+            </div>
+
+            <div class="signature-box">
+                <div style="font-weight: 600; margin-bottom: 10px;">ผู้อนุมัติรายงานและผลรางวัล</div>
+                <div class="signature-line"></div>
+                <div style="margin-top: 8px;">( .................................................................... )</div>
+                <div style="font-weight: 500; margin-top: 4px;">ตำแหน่ง: ผู้จัดการฝ่ายขนส่ง</div>
+                <div style="font-size: 12px; color: #555; margin-top: 4px;">วันที่ ......... / ......... / .............</div>
             </div>
         </div>
     </div>
@@ -552,7 +791,6 @@
                 images: ['https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=150&auto=format&fit=crop'],
                 actionTaken: 'ปฏิบัติการความปลอดภัยทันที (Safety Action)',
                 suggestion: 'ควรเปลี่ยนสายไฟหุ้มฉนวนแบบทนความร้อนใหม่',
-                auditStatus: 'approved',
                 scoreRisk: 3,
                 scoreData: 3,
                 scoreAction: 3,
@@ -571,11 +809,10 @@
                 ],
                 actionTaken: 'จัดการแก้ไขจุดเสี่ยงสำเร็จทันที (Stop & Fix)',
                 suggestion: 'นำทรายซับน้ำมันมาเทและทำความสะอาดเรียบร้อยแล้ว',
-                auditStatus: 'approved',
                 scoreRisk: 2,
                 scoreData: 3,
                 scoreAction: 3,
-                scoreBonus: 1
+                scoreBonus: 0
             },
             {
                 id: 3,
@@ -587,11 +824,10 @@
                 images: ['https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop'],
                 actionTaken: 'ปฏิบัติการความปลอดภัยทันที (Safety Action)',
                 suggestion: 'แจ้งช่างให้เปลี่ยนปลั๊กพ่วงมาตรฐานใหม่ทันที',
-                auditStatus: 'approved',
                 scoreRisk: 2,
                 scoreData: 3,
                 scoreAction: 3,
-                scoreBonus: 1
+                scoreBonus: 0
             }
         ];
 
@@ -687,26 +923,39 @@
             e.preventDefault();
 
             const actionVal = document.querySelector('input[name="action_taken"]:checked').value;
-            const isBonusAction = (actionVal.includes('Safety Action') || actionVal.includes('Stop & Fix'));
+            const empName = document.getElementById('empInfo').value.trim();
+
+            // Count how many reports this employee has submitted so far
+            const prevReportsCount = reportsData.filter(r => r.empInfo === empName).length;
+            const isBonusActive = (prevReportsCount >= 1); // If they already submitted 1, this new one makes it >= 2!
 
             const newReport = {
                 id: Date.now(),
                 timestamp: new Date().toLocaleString('th-TH'),
-                empInfo: document.getElementById('empInfo').value,
+                empInfo: empName,
                 department: document.getElementById('department').value,
                 location: document.getElementById('location').value,
                 description: document.getElementById('description').value,
                 images: uploadedImagesBase64.length > 0 ? uploadedImagesBase64 : ['https://via.placeholder.com/150?text=No+Photo'],
                 actionTaken: actionVal,
                 suggestion: document.getElementById('suggestion').value,
-                auditStatus: isBonusAction ? 'pending' : 'none',
                 scoreRisk: 0,
                 scoreData: 0,
                 scoreAction: 0,
-                scoreBonus: isBonusAction ? 1 : 0
+                scoreBonus: isBonusActive ? 1 : 0
             };
 
             reportsData.unshift(newReport);
+
+            // Also update bonus for previous submissions by this employee
+            if (isBonusActive) {
+                reportsData.forEach(r => {
+                    if (r.empInfo === empName) {
+                        r.scoreBonus = 1;
+                    }
+                });
+            }
+
             localStorage.setItem('near_miss_data', JSON.stringify(reportsData));
 
             Swal.fire({
@@ -752,10 +1001,12 @@
                 else if (index === 1) rankBadgeClass = 'rank-2';
                 else if (index === 2) rankBadgeClass = 'rank-3';
 
-                const currentAudit = item.auditStatus || 'pending';
-                let auditClass = 'audit-pending';
-                if (currentAudit === 'approved') auditClass = 'audit-approved';
-                if (currentAudit === 'rejected') auditClass = 'audit-rejected';
+                // Count total submissions by this employee
+                const empSubmissionsCount = reportsData.filter(r => r.empInfo === item.empInfo).length;
+                let submissionTag = `<span class="bonus-tag-single">1 เรื่อง</span>`;
+                if (empSubmissionsCount >= 2) {
+                    submissionTag = `<span class="bonus-tag-active">🔥 ${empSubmissionsCount} เรื่อง (ได้โบนัส)</span>`;
+                }
 
                 // Handle multiple images rendering
                 const imagesList = item.images || (item.image ? [item.image] : []);
@@ -774,13 +1025,7 @@
                     <td>${item.location}</td>
                     <td style="max-width: 180px;">${item.description}</td>
                     <td>${imgHtml}</td>
-                    <td>
-                        <select class="audit-select ${auditClass}" onchange="changeAuditStatus(${item.id}, this.value)">
-                            <option value="pending" ${currentAudit === 'pending' ? 'selected' : ''}>⏳ รอตรวจสอบ</option>
-                            <option value="approved" ${currentAudit === 'approved' ? 'selected' : ''}>✅ อนุมัติโบนัส (+1)</option>
-                            <option value="rejected" ${currentAudit === 'rejected' ? 'selected' : ''}>❌ ไม่อนุมัติโบนัส (0)</option>
-                        </select>
-                    </td>
+                    <td>${submissionTag}</td>
                     <td><input type="number" class="score-input" min="0" max="3" value="${item.scoreRisk || 0}" onchange="updateScore(${item.id}, 'scoreRisk', this.value)"></td>
                     <td><input type="number" class="score-input" min="0" max="3" value="${item.scoreData || 0}" onchange="updateScore(${item.id}, 'scoreData', this.value)"></td>
                     <td><input type="number" class="score-input" min="0" max="3" value="${item.scoreAction || 0}" onchange="updateScore(${item.id}, 'scoreAction', this.value)"></td>
@@ -790,20 +1035,6 @@
                 `;
                 tbody.appendChild(row);
             });
-        }
-
-        function changeAuditStatus(id, newStatus) {
-            const target = reportsData.find(r => r.id === id);
-            if (target) {
-                target.auditStatus = newStatus;
-                if (newStatus === 'approved') {
-                    target.scoreBonus = 1;
-                } else if (newStatus === 'rejected') {
-                    target.scoreBonus = 0;
-                }
-                localStorage.setItem('near_miss_data', JSON.stringify(reportsData));
-                renderAdminTable();
-            }
         }
 
         function updateScore(id, field, val) {
@@ -837,12 +1068,13 @@
 
         function exportToCSV() {
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-            csvContent += "ลำดับ,วันที่เวลา,ชื่อ-นามสกุล,แผนก,สถานที่,เหตุการณ์,การแก้ไขเบื้องต้น,จำนวนรูปถ่าย,สถานะการอนุมัติโบนัส,คะแนนรวม\n";
+            csvContent += "ลำดับ,วันที่เวลา,ชื่อ-นามสกุล,แผนก,สถานที่,เหตุการณ์,การปฏิบัติการเบื้องต้น,จำนวนรูปถ่าย,จำนวนเรื่องที่ส่งรวม,คะแนนรวม\n";
 
             reportsData.forEach((item, index) => {
                 const total = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
                 const countImgs = (item.images ? item.images.length : 1);
-                let row = `"${index+1}","${item.timestamp}","${item.empInfo}","${item.department}","${item.location}","${item.description.replace(/"/g, '""')}","${item.actionTaken}","${countImgs} รูป","${item.auditStatus || 'pending'}","${total}"`;
+                const countSubs = reportsData.filter(r => r.empInfo === item.empInfo).length;
+                let row = `"${index+1}","${item.timestamp}","${item.empInfo}","${item.department}","${item.location}","${item.description.replace(/"/g, '""')}","${item.actionTaken}","${countImgs} รูป","${countSubs} เรื่อง","${total}"`;
                 csvContent += row + "\n";
             });
 
@@ -853,6 +1085,70 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        /* PRINTABLE REPORT GENERATOR FUNCTION */
+        function printReportDocument() {
+            document.getElementById('printTotalCount').innerText = reportsData.length;
+            
+            const opsItems = reportsData.filter(i => i.department.includes('ขับรถ') || i.department.includes('ซ่อมบำรุง'));
+            const officeItems = reportsData.filter(i => !i.department.includes('ขับรถ') && !i.department.includes('ซ่อมบำรุง'));
+            
+            // Count unique people who submitted >= 2 reports
+            const uniqueActiveReporters = new Set(
+                reportsData.filter(r => reportsData.filter(item => item.empInfo === r.empInfo).length >= 2).map(r => r.empInfo)
+            ).size;
+
+            document.getElementById('printOpsCount').innerText = opsItems.length;
+            document.getElementById('printOfficeCount').innerText = officeItems.length;
+            document.getElementById('printActiveCount').innerText = uniqueActiveReporters + " คน";
+
+            // Render Ops Table
+            opsItems.sort((a, b) => {
+                const totalA = (a.scoreRisk || 0) + (a.scoreData || 0) + (a.scoreAction || 0) + (a.scoreBonus || 0);
+                const totalB = (b.scoreRisk || 0) + (b.scoreData || 0) + (b.scoreAction || 0) + (b.scoreBonus || 0);
+                return totalB - totalA;
+            });
+
+            const printOpsTbody = document.getElementById('printOpsTbody');
+            printOpsTbody.innerHTML = '';
+            opsItems.slice(0, 11).forEach((item, index) => {
+                const totalScore = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="text-align: center; font-weight: bold;">${index + 1}</td>
+                    <td><b>${item.empInfo}</b></td>
+                    <td>${item.department}</td>
+                    <td>${item.description}</td>
+                    <td style="text-align: center; font-weight: bold; font-size: 13px;">${totalScore} / 10</td>
+                `;
+                printOpsTbody.appendChild(row);
+            });
+
+            // Render Office Table
+            officeItems.sort((a, b) => {
+                const totalA = (a.scoreRisk || 0) + (a.scoreData || 0) + (a.scoreAction || 0) + (a.scoreBonus || 0);
+                const totalB = (b.scoreRisk || 0) + (b.scoreData || 0) + (b.scoreAction || 0) + (b.scoreBonus || 0);
+                return totalB - totalA;
+            });
+
+            const printOfficeTbody = document.getElementById('printOfficeTbody');
+            printOfficeTbody.innerHTML = '';
+            officeItems.slice(0, 5).forEach((item, index) => {
+                const totalScore = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="text-align: center; font-weight: bold;">${index + 1}</td>
+                    <td><b>${item.empInfo}</b></td>
+                    <td>${item.department}</td>
+                    <td>${item.description}</td>
+                    <td style="text-align: center; font-weight: bold; font-size: 13px;">${totalScore} / 10</td>
+                `;
+                printOfficeTbody.appendChild(row);
+            });
+
+            // Trigger Window Print
+            window.print();
         }
     </script>
 </body>
