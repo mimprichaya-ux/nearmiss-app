@@ -174,31 +174,6 @@
             resize: vertical;
         }
 
-        .radio-card {
-            display: flex;
-            align-items: flex-start;
-            padding: 12px 14px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            background: #faf9f8;
-            transition: all 0.2s ease;
-        }
-
-        .radio-card:hover {
-            border-color: var(--primary);
-            background: #f3f9ff;
-        }
-
-        .radio-card input {
-            margin-right: 12px;
-            margin-top: 3px;
-            accent-color: var(--primary);
-            width: 18px;
-            height: 18px;
-        }
-
         .file-box {
             border: 2px dashed #b3d6fc;
             background: #f0f7ff;
@@ -603,30 +578,11 @@
                         </div>
                     </div>
 
-                    <!-- Q6 (CLEANED UP: Factual incident response without bonus hints) -->
+                    <!-- Q6: OPEN TEXT FOR FLEXIBLE ACTIONS -->
                     <div class="form-group">
-                        <label>6. เมื่อพบเห็นความเสี่ยง ท่านได้ปฏิบัติตัวอย่างไรเบื้องต้น? <span class="req">*</span></label>
-                        <div class="radio-card">
-                            <input type="radio" name="action_taken" value="แจ้งเรื่องเข้าระบบอย่างเดียว" checked>
-                            <div>
-                                <b>แจ้งเรื่องเข้าระบบอย่างเดียว</b>
-                                <div style="font-size: 12px; color: var(--text-muted);">ไม่ได้ปฏิบัติการอื่น แจ้งเพื่อให้ทีม Safety / หัวหน้างาน เข้าไปตรวจสอบ</div>
-                            </div>
-                        </div>
-                        <div class="radio-card">
-                            <input type="radio" name="action_taken" value="ปฏิบัติการความปลอดภัยทันที (Safety Action)">
-                            <div>
-                                <b>ปฏิบัติการความปลอดภัยทันที (Safety Action)</b>
-                                <div style="font-size: 12px; color: var(--primary-dark);">เช่น ชะลอจอดจุดปลอดภัยบนถนน, โทรแจ้ง จป./หัวหน้าขนส่งทันที</div>
-                            </div>
-                        </div>
-                        <div class="radio-card">
-                            <input type="radio" name="action_taken" value="จัดการแก้ไขจุดเสี่ยงสำเร็จทันที (Stop & Fix)">
-                            <div>
-                                <b>จัดการแก้ไขจุดเสี่ยงสำเร็จทันที (Stop & Fix)</b>
-                                <div style="font-size: 12px; color: var(--success); font-weight: 500;">เช่น เช็ดคราบน้ำมัน, ขยับของออกจากทางเดิน, นำหมอนรองล้อมากั้น</div>
-                            </div>
-                        </div>
+                        <label>6. ตอนเกิดเหตุ ท่านได้แก้ปัญหาเฉพาะหน้าอย่างไร? (ถ้ามี)</label>
+                        <span class="hint">เช่น แตะเบรกชะลอรถแล้วค่อยๆ ขับผ่าน, โทรเตือนเพื่อนคันหลัง, ช่วยเช็ดคราบน้ำมันที่อู่แล้ว</span>
+                        <input type="text" id="actionTaken" class="form-control" placeholder="พิมพ์สั้นๆ ว่าตอนนั้นท่านแก้ปัญหาเฉพาะหน้าอย่างไร...">
                     </div>
 
                     <!-- Q7 -->
@@ -678,6 +634,7 @@
                             <th>สถานที่</th>
                             <th>เหตุการณ์ Near Miss</th>
                             <th>รูปหลักฐาน (แตะดูรูปใหญ่)</th>
+                            <th>การแก้ปัญหาเฉพาะหน้า</th>
                             <th>จำนวนเรื่องที่ส่ง</th>
                             <th>เสี่ยง (3)</th>
                             <th>ข้อมูล (3)</th>
@@ -789,7 +746,7 @@
                 location: 'บนถนน / เส้นทางขนส่ง',
                 description: 'สายไฟสปอตไลท์ส่องสว่างท้ายรถบรรทุกชำรุด มีทองแดงโผล่เสี่ยงไฟช็อต',
                 images: ['https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=150&auto=format&fit=crop'],
-                actionTaken: 'ปฏิบัติการความปลอดภัยทันที (Safety Action)',
+                actionTaken: 'แตะเบรกชะลอรถ และถ่ายรูปไว้แจ้งช่างตอนถึงจุดหมาย',
                 suggestion: 'ควรเปลี่ยนสายไฟหุ้มฉนวนแบบทนความร้อนใหม่',
                 scoreRisk: 3,
                 scoreData: 3,
@@ -807,8 +764,8 @@
                     'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=150&auto=format&fit=crop',
                     'https://images.unsplash.com/photo-1581092335397-9583fe92d232?w=150&auto=format&fit=crop'
                 ],
-                actionTaken: 'จัดการแก้ไขจุดเสี่ยงสำเร็จทันที (Stop & Fix)',
-                suggestion: 'นำทรายซับน้ำมันมาเทและทำความสะอาดเรียบร้อยแล้ว',
+                actionTaken: 'นำทรายซับน้ำมันมาเทและทำความสะอาดทันที',
+                suggestion: 'ทำความสะอาดเรียบร้อยแล้ว และเตือนช่างคนอื่น',
                 scoreRisk: 2,
                 scoreData: 3,
                 scoreAction: 3,
@@ -822,7 +779,7 @@
                 location: 'สำนักงาน / ห้องพักพนักงาน',
                 description: 'สายปลั๊กพ่วงพัดลมในห้องธุรการชำรุด มีรอยไหม้ตรงเต้ารับ',
                 images: ['https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop'],
-                actionTaken: 'ปฏิบัติการความปลอดภัยทันที (Safety Action)',
+                actionTaken: 'ดึงปลั๊กออกทันทีและแจ้งช่างไฟฟ้า',
                 suggestion: 'แจ้งช่างให้เปลี่ยนปลั๊กพ่วงมาตรฐานใหม่ทันที',
                 scoreRisk: 2,
                 scoreData: 3,
@@ -922,7 +879,7 @@
         function submitReport(e) {
             e.preventDefault();
 
-            const actionVal = document.querySelector('input[name="action_taken"]:checked').value;
+            const actionVal = document.getElementById('actionTaken').value.trim() || 'ไม่ได้ระบุ';
             const empName = document.getElementById('empInfo').value.trim();
 
             // Count how many reports this employee has submitted so far
@@ -1023,8 +980,9 @@
                     <td><b>${item.empInfo}</b></td>
                     <td>${item.department}</td>
                     <td>${item.location}</td>
-                    <td style="max-width: 180px;">${item.description}</td>
+                    <td style="max-width: 160px;">${item.description}</td>
                     <td>${imgHtml}</td>
+                    <td style="max-width: 140px; font-size: 12px; color: #005a9e;">${item.actionTaken || '-'}</td>
                     <td>${submissionTag}</td>
                     <td><input type="number" class="score-input" min="0" max="3" value="${item.scoreRisk || 0}" onchange="updateScore(${item.id}, 'scoreRisk', this.value)"></td>
                     <td><input type="number" class="score-input" min="0" max="3" value="${item.scoreData || 0}" onchange="updateScore(${item.id}, 'scoreData', this.value)"></td>
@@ -1068,13 +1026,13 @@
 
         function exportToCSV() {
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-            csvContent += "ลำดับ,วันที่เวลา,ชื่อ-นามสกุล,แผนก,สถานที่,เหตุการณ์,การปฏิบัติการเบื้องต้น,จำนวนรูปถ่าย,จำนวนเรื่องที่ส่งรวม,คะแนนรวม\n";
+            csvContent += "ลำดับ,วันที่เวลา,ชื่อ-นามสกุล,แผนก,สถานที่,เหตุการณ์,การแก้ปัญหาเฉพาะหน้า,จำนวนรูปถ่าย,จำนวนเรื่องที่ส่งรวม,คะแนนรวม\n";
 
             reportsData.forEach((item, index) => {
                 const total = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
                 const countImgs = (item.images ? item.images.length : 1);
                 const countSubs = reportsData.filter(r => r.empInfo === item.empInfo).length;
-                let row = `"${index+1}","${item.timestamp}","${item.empInfo}","${item.department}","${item.location}","${item.description.replace(/"/g, '""')}","${item.actionTaken}","${countImgs} รูป","${countSubs} เรื่อง","${total}"`;
+                let row = `"${index+1}","${item.timestamp}","${item.empInfo}","${item.department}","${item.location}","${item.description.replace(/"/g, '""')}","${(item.actionTaken || '-').replace(/"/g, '""')}","${countImgs} รูป","${countSubs} เรื่อง","${total}"`;
                 csvContent += row + "\n";
             });
 
