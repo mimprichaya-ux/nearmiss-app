@@ -352,12 +352,19 @@
         .filter-bar {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 20px;
+            flex-wrap: wrap;
             background: #eef6ff;
             padding: 10px 15px;
             border-radius: 10px;
             margin-bottom: 15px;
             border: 1px solid #b3d6fc;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         /* Printable Report Styles */
@@ -604,7 +611,7 @@
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <div>
                     <h2>📊 ตารางประเมินคะแนน (9 คะแนนหลัก + 1 โบนัสการมีส่วนร่วม = เต็ม 10) 🔒</h2>
-                    <p>เกณฑ์: เสี่ยง (3) + ข้อมูล (3) + แก้ไข (3) = 9 คะแนนหลัก | โบนัส +1 ให้ผู้ที่ส่งรายงานตั้งแต่ 2 เรื่องขึ้นไปในเดือน</p>
+                    <p>เกณฑ์: เสี่ยง (3) + ข้อมูล (3) + แก้ไข (3) = 9 คะแนนหลัก | โบนัส +1 ให้ผู้ที่ส่งรายงานตั้งแต่ 2 เรื่องขึ้นไปในเดือนที่เลือก</p>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <button class="btn-excel" onclick="exportToCSV()">📥 Export to Excel</button>
@@ -613,15 +620,23 @@
                 </div>
             </div>
             <div class="card-body" style="overflow-x: auto;">
-                
-                <!-- Group Filter Bar -->
+
+                <!-- Filter Bar: Month + Group -->
                 <div class="filter-bar">
-                    <label style="font-weight: 600; font-size: 13px; color: var(--primary-dark);">🎯 กรองจัดอันดับตามสายงาน:</label>
-                    <select id="groupFilter" class="form-control" style="max-width: 280px; padding: 6px 10px; font-size: 13px;" onchange="renderAdminTable()">
-                        <option value="all">🌐 แสดงทุกสายงาน (ภาพรวมทั้งหมด)</option>
-                        <option value="ops">🚛 สายปฏิบัติการ (ขนส่ง & ช่างซ่อมบำรุง)</option>
-                        <option value="office">🏢 สายสนับสนุน & ออฟฟิศ (ธุรการ/แม่บ้าน)</option>
-                    </select>
+                    <div class="filter-group">
+                        <label style="font-weight: 600; font-size: 13px; color: var(--primary-dark);">📅 เลือกเดือนที่ต้องการดูรายงาน:</label>
+                        <select id="monthFilter" class="form-control" style="max-width: 220px; padding: 6px 10px; font-size: 13px;" onchange="renderAdminTable()">
+                            <option value="all">🌐 ทุกเดือน (ทั้งหมด)</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label style="font-weight: 600; font-size: 13px; color: var(--primary-dark);">🎯 กรองตามสายงาน:</label>
+                        <select id="groupFilter" class="form-control" style="max-width: 280px; padding: 6px 10px; font-size: 13px;" onchange="renderAdminTable()">
+                            <option value="all">🌐 แสดงทุกสายงาน (ภาพรวมทั้งหมด)</option>
+                            <option value="ops">🚛 สายปฏิบัติการ (ขนส่ง & ช่างซ่อมบำรุง)</option>
+                            <option value="office">🏢 สายสนับสนุน & ออฟฟิศ (ธุรการ/แม่บ้าน)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <table id="adminTable">
@@ -635,7 +650,7 @@
                             <th>เหตุการณ์ Near Miss</th>
                             <th>รูปหลักฐาน (แตะดูรูปใหญ่)</th>
                             <th>การแก้ปัญหาเฉพาะหน้า</th>
-                            <th>จำนวนเรื่องที่ส่ง</th>
+                            <th>จำนวนเรื่องที่ส่ง (เดือนนี้)</th>
                             <th>เสี่ยง (3)</th>
                             <th>ข้อมูล (3)</th>
                             <th>แก้ไข (3)</th>
@@ -655,9 +670,10 @@
     <!-- AREA FOR PRINTING / PDF REPORT EXPORT -->
     <div id="printableReportArea">
         <div class="print-header">
-            <h1>บริษัท สหชาติเศรษฐกิจ จำกัด (พชร. ขนส่ง & ซ่อมบำรุง)</h1>
-            <h2>รายงานสรุปประเมินผลกิจกรรม Near Miss และประกาศรางวัลประจำเดือน</h2>
-            <div style="font-size: 13px; color: #555;" id="printReportDate">ประจำเดือน: สิงหาคม 2569</div>
+            <h1>บริษัท เซ้าท์อีสต์ทรานสปอร์ต จำกัด (พชร. ขนส่ง & ซ่อมบำรุง)</h1>
+            <h2>รายงานสรุปประเมินผลกิจกรรม Near Miss และประกาศรางวัล</h2>
+            <div style="font-size: 15px; font-weight: 600; color: #000; margin-top: 4px;" id="printReportMonth">ประจำเดือน ...</div>
+            <div style="font-size: 12px; color: #555; margin-top: 2px;" id="printReportDate"></div>
         </div>
 
         <div class="print-summary-box">
@@ -736,11 +752,14 @@
         let isAdminLoggedIn = false;
         let uploadedImagesBase64 = [];
 
+        const thaiMonths = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+
         // Mock Initial Data for testing
         let reportsData = JSON.parse(localStorage.getItem('near_miss_data')) || [
             {
                 id: 1,
                 timestamp: '05/08/2026 09:15',
+                dateISO: '2026-08-05T09:15:00',
                 empInfo: 'นายสมชาย ใจดี',
                 department: 'แผนกขับรถส่งสินค้า',
                 location: 'บนถนน / เส้นทางขนส่ง',
@@ -756,6 +775,7 @@
             {
                 id: 2,
                 timestamp: '05/08/2026 10:30',
+                dateISO: '2026-08-05T10:30:00',
                 empInfo: 'นายวิชัย ซ่อมดี',
                 department: 'หน่วยซ่อมบำรุงรถบรรทุก',
                 location: 'อู่ซ่อมบำรุง / พื้นที่ซ่อมรถบรรทุก',
@@ -774,6 +794,7 @@
             {
                 id: 3,
                 timestamp: '05/08/2026 11:10',
+                dateISO: '2026-08-05T11:10:00',
                 empInfo: 'นางสาวมณี รักสงบ',
                 department: 'แผนกธุรการ (ขนส่ง/ซ่อมบำรุง)',
                 location: 'สำนักงาน / ห้องพักพนักงาน',
@@ -784,6 +805,22 @@
                 scoreRisk: 2,
                 scoreData: 3,
                 scoreAction: 3,
+                scoreBonus: 0
+            },
+            {
+                id: 4,
+                timestamp: '10/07/2026 14:20',
+                dateISO: '2026-07-10T14:20:00',
+                empInfo: 'นายประยุทธ ขับดี',
+                department: 'แผนกขับรถส่งสินค้า',
+                location: 'ปั๊มน้ำมัน / จุดแวะพักรถ',
+                description: 'พื้นบริเวณปั๊มลื่นจากน้ำมันหยดจากรถคันอื่น เสี่ยงลื่นล้ม',
+                images: ['https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=150&auto=format&fit=crop'],
+                actionTaken: 'แจ้งพนักงานปั๊มให้มาทำความสะอาดทันที',
+                suggestion: 'ควรตั้งป้ายเตือนพื้นลื่นบริเวณจุดเติมน้ำมัน',
+                scoreRisk: 2,
+                scoreData: 2,
+                scoreAction: 2,
                 scoreBonus: 0
             }
         ];
@@ -852,6 +889,7 @@
                 document.getElementById('viewAdmin').style.display = 'block';
                 document.getElementById('btnModeForm').classList.remove('active');
                 document.getElementById('btnModeAdmin').classList.add('active');
+                populateMonthFilter();
                 renderAdminTable();
             }
         }
@@ -886,9 +924,12 @@
             const prevReportsCount = reportsData.filter(r => r.empInfo === empName).length;
             const isBonusActive = (prevReportsCount >= 1); // If they already submitted 1, this new one makes it >= 2!
 
+            const nowDate = new Date();
+
             const newReport = {
                 id: Date.now(),
-                timestamp: new Date().toLocaleString('th-TH'),
+                timestamp: nowDate.toLocaleString('th-TH'),
+                dateISO: nowDate.toISOString(),
                 empInfo: empName,
                 department: document.getElementById('department').value,
                 location: document.getElementById('location').value,
@@ -927,14 +968,77 @@
             uploadedImagesBase64 = [];
         }
 
+        /* ===================== MONTH FILTER HELPERS ===================== */
+
+        // Build a "YYYY-MM" key from an ISO date string
+        function monthKey(dateISO) {
+            const d = new Date(dateISO);
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        }
+
+        // Populate the month dropdown with every month that actually has data,
+        // newest first, formatted as Thai month name + Buddhist year (e.g. สิงหาคม 2569)
+        function populateMonthFilter() {
+            const monthSelect = document.getElementById('monthFilter');
+            if (!monthSelect) return;
+
+            const monthsSet = new Set();
+            reportsData.forEach(item => {
+                if (item.dateISO) monthsSet.add(monthKey(item.dateISO));
+            });
+            const sortedMonths = Array.from(monthsSet).sort().reverse();
+
+            const currentVal = monthSelect.value;
+            monthSelect.innerHTML = '<option value="all">🌐 ทุกเดือน (ทั้งหมด)</option>';
+            sortedMonths.forEach(key => {
+                const [y, m] = key.split('-');
+                const buddhistYear = parseInt(y) + 543;
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = '📅 ' + thaiMonths[parseInt(m) - 1] + ' ' + buddhistYear;
+                monthSelect.appendChild(opt);
+            });
+
+            const hasCurrentVal = Array.from(monthSelect.options).some(o => o.value === currentVal);
+            if (currentVal && hasCurrentVal) {
+                monthSelect.value = currentVal;
+            } else if (sortedMonths.length > 0) {
+                monthSelect.value = sortedMonths[0]; // default to the most recent month
+            } else {
+                monthSelect.value = 'all';
+            }
+        }
+
+        // Filter a dataset down to the currently selected month ("all" = no filtering)
+        function getFilteredByMonth(data) {
+            const monthSelect = document.getElementById('monthFilter');
+            const val = monthSelect ? monthSelect.value : 'all';
+            if (!val || val === 'all') return data;
+            return data.filter(item => item.dateISO && monthKey(item.dateISO) === val);
+        }
+
+        // Human-readable Thai label for the currently selected month, e.g. "สิงหาคม พ.ศ. 2569"
+        function getSelectedMonthLabel() {
+            const monthSelect = document.getElementById('monthFilter');
+            const val = monthSelect ? monthSelect.value : 'all';
+            if (!val || val === 'all') return 'ทุกเดือน (ทั้งหมด)';
+            const [y, m] = val.split('-');
+            const buddhistYear = parseInt(y) + 543;
+            return thaiMonths[parseInt(m) - 1] + ' พ.ศ. ' + buddhistYear;
+        }
+        /* =================== END MONTH FILTER HELPERS =================== */
+
         function renderAdminTable() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
             const filterVal = document.getElementById('groupFilter') ? document.getElementById('groupFilter').value : 'all';
 
-            // Filter data by group
-            let filteredData = reportsData.filter(item => {
+            // Step 1: scope everything to the selected month
+            const monthScoped = getFilteredByMonth(reportsData);
+
+            // Step 2: filter by group within that month
+            let filteredData = monthScoped.filter(item => {
                 if (filterVal === 'ops') {
                     return item.department.includes('ขับรถ') || item.department.includes('ซ่อมบำรุง');
                 } else if (filterVal === 'office') {
@@ -952,14 +1056,14 @@
 
             filteredData.forEach((item, index) => {
                 const totalScore = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
-                
+
                 let rankBadgeClass = 'rank-other';
                 if (index === 0) rankBadgeClass = 'rank-1';
                 else if (index === 1) rankBadgeClass = 'rank-2';
                 else if (index === 2) rankBadgeClass = 'rank-3';
 
-                // Count total submissions by this employee
-                const empSubmissionsCount = reportsData.filter(r => r.empInfo === item.empInfo).length;
+                // Count submissions by this employee WITHIN the selected month
+                const empSubmissionsCount = monthScoped.filter(r => r.empInfo === item.empInfo).length;
                 let submissionTag = `<span class="bonus-tag-single">1 เรื่อง</span>`;
                 if (empSubmissionsCount >= 2) {
                     submissionTag = `<span class="bonus-tag-active">🔥 ${empSubmissionsCount} เรื่อง (ได้โบนัส)</span>`;
@@ -1008,6 +1112,7 @@
             if (confirm('คุณต้องการลบรายการนี้ใช่หรือไม่?')) {
                 reportsData = reportsData.filter(r => r.id !== id);
                 localStorage.setItem('near_miss_data', JSON.stringify(reportsData));
+                populateMonthFilter();
                 renderAdminTable();
             }
         }
@@ -1015,7 +1120,7 @@
         function viewFullImages(id, index) {
             const target = reportsData.find(r => r.id === id);
             const imagesList = target.images || (target.image ? [target.image] : []);
-            
+
             Swal.fire({
                 title: `รูปถ่ายหลักฐาน (${index + 1}/${imagesList.length})`,
                 imageUrl: imagesList[index],
@@ -1025,21 +1130,25 @@
         }
 
         function exportToCSV() {
+            // Respects the currently selected month filter
+            const dataToExport = getFilteredByMonth(reportsData);
+
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
             csvContent += "ลำดับ,วันที่เวลา,ชื่อ-นามสกุล,แผนก,สถานที่,เหตุการณ์,การแก้ปัญหาเฉพาะหน้า,จำนวนรูปถ่าย,จำนวนเรื่องที่ส่งรวม,คะแนนรวม\n";
 
-            reportsData.forEach((item, index) => {
+            dataToExport.forEach((item, index) => {
                 const total = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
                 const countImgs = (item.images ? item.images.length : 1);
-                const countSubs = reportsData.filter(r => r.empInfo === item.empInfo).length;
+                const countSubs = dataToExport.filter(r => r.empInfo === item.empInfo).length;
                 let row = `"${index+1}","${item.timestamp}","${item.empInfo}","${item.department}","${item.location}","${item.description.replace(/"/g, '""')}","${(item.actionTaken || '-').replace(/"/g, '""')}","${countImgs} รูป","${countSubs} เรื่อง","${total}"`;
                 csvContent += row + "\n";
             });
 
+            const monthTag = getSelectedMonthLabel().replace(/\s+/g, '_');
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Near_Miss_Report_${new Date().toISOString().slice(0,10)}.csv`);
+            link.setAttribute("download", `Near_Miss_Report_${monthTag}_${new Date().toISOString().slice(0,10)}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1047,14 +1156,21 @@
 
         /* PRINTABLE REPORT GENERATOR FUNCTION */
         function printReportDocument() {
-            document.getElementById('printTotalCount').innerText = reportsData.length;
-            
-            const opsItems = reportsData.filter(i => i.department.includes('ขับรถ') || i.department.includes('ซ่อมบำรุง'));
-            const officeItems = reportsData.filter(i => !i.department.includes('ขับรถ') && !i.department.includes('ซ่อมบำรุง'));
-            
-            // Count unique people who submitted >= 2 reports
+            // Scope the whole report to whichever month is selected in the dropdown
+            const monthFilteredData = getFilteredByMonth(reportsData);
+
+            document.getElementById('printReportMonth').innerText = 'ประจำเดือน ' + getSelectedMonthLabel();
+            document.getElementById('printReportDate').innerText =
+                'วันที่ออกรายงาน: ' + new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            document.getElementById('printTotalCount').innerText = monthFilteredData.length;
+
+            const opsItems = monthFilteredData.filter(i => i.department.includes('ขับรถ') || i.department.includes('ซ่อมบำรุง'));
+            const officeItems = monthFilteredData.filter(i => !i.department.includes('ขับรถ') && !i.department.includes('ซ่อมบำรุง'));
+
+            // Count unique people who submitted >= 2 reports WITHIN the selected month
             const uniqueActiveReporters = new Set(
-                reportsData.filter(r => reportsData.filter(item => item.empInfo === r.empInfo).length >= 2).map(r => r.empInfo)
+                monthFilteredData.filter(r => monthFilteredData.filter(item => item.empInfo === r.empInfo).length >= 2).map(r => r.empInfo)
             ).size;
 
             document.getElementById('printOpsCount').innerText = opsItems.length;
