@@ -6,6 +6,7 @@
     <title>ระบบรายงาน Near Miss - พชร. ขนส่ง & ซ่อมบำรุง</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --primary: #0078d4;
@@ -367,15 +368,147 @@
             gap: 8px;
         }
 
+        /* Admin Tabs (Report Pages) */
+        .admin-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .admin-tab-btn {
+            background: #f3f2f1;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px 10px 0 0;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.15s ease;
+        }
+
+        .admin-tab-btn:hover {
+            background: #e1e9f0;
+        }
+
+        .admin-tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .admin-tab-panel {
+            display: none;
+        }
+
+        .admin-tab-panel.active {
+            display: block;
+        }
+
+        /* Report page building blocks (reused for screen + print) */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .delta-up { color: var(--success); font-size: 12px; font-weight: 600; }
+        .delta-down { color: var(--danger); font-size: 12px; font-weight: 600; }
+        .delta-flat { color: var(--text-muted); font-size: 12px; }
+
+        .chart-box {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .chart-box h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+        }
+
+        .rank-list-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background: #fff;
+        }
+
+        .rank-list-card .info { flex: 1; }
+        .rank-list-card .name { font-weight: 600; font-size: 14px; }
+        .rank-list-card .meta { font-size: 12px; color: var(--text-muted); }
+        .rank-list-card .score { font-weight: 700; color: var(--primary-dark); font-size: 16px; white-space: nowrap; }
+
+        .award-rank-icon { font-size: 22px; width: 36px; text-align: center; flex-shrink: 0; }
+
+        .award-section-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 18px 0 10px;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .award-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: linear-gradient(135deg, #fff9e6, #ffffff);
+            border: 1px solid #ffd54f;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+        }
+
         /* Printable Report Styles */
         #printableReportArea {
             display: none;
             background: white;
-            padding: 30px 40px;
+            padding: 0;
             width: 100%;
             max-width: 900px;
             margin: 0 auto;
             color: #000;
+        }
+
+        .print-page {
+            page-break-after: always;
+            padding: 10mm 5mm;
+        }
+
+        .print-page:last-child {
+            page-break-after: auto;
         }
 
         .print-header {
@@ -386,48 +519,37 @@
         }
 
         .print-header h1 {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             margin-bottom: 4px;
             color: #000;
         }
 
         .print-header h2 {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             color: #333;
             margin-bottom: 6px;
         }
 
-        .print-summary-box {
+        .print-page-header {
             display: flex;
-            justify-content: space-around;
-            border: 1px solid #000;
-            padding: 12px;
-            margin-bottom: 20px;
-            background: #f9f9f9;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 1px solid #000;
+            padding-bottom: 6px;
+            margin-bottom: 16px;
         }
 
-        .print-stat-item {
-            text-align: center;
-        }
+        .print-page-header .company { font-size: 12px; font-weight: 600; }
+        .print-page-header .pagelabel { font-size: 11px; color: #444; }
 
-        .print-stat-value {
-            font-size: 18px;
+        .print-page-title {
+            font-size: 16px;
             font-weight: 700;
-        }
-
-        .print-stat-label {
-            font-size: 12px;
-            color: #444;
-        }
-
-        .print-section-title {
-            font-size: 15px;
-            font-weight: 700;
-            margin: 20px 0 10px;
-            border-bottom: 1px dashed #666;
-            padding-bottom: 4px;
+            margin-bottom: 14px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 6px;
         }
 
         .print-table {
@@ -491,8 +613,7 @@
                 box-shadow: none !important;
             }
 
-            .print-table th {
-                background-color: #e0e0e0 !important;
+            .print-table th, .stat-card, .chart-box, .award-card {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
@@ -542,7 +663,7 @@
                         <select id="department" class="form-control" required>
                             <option value="">-- เลือกแผนก --</option>
                             <option value="แผนกขับรถส่งสินค้า">แผนกขับรถส่งสินค้า (สายปฏิบัติการ)</option>
-                            <option value="หน่วยซ่อมบำรุงรถบรรทุก">แผนกซ่อมบำรุงรถบรรทุก (สายปฏิบัติการ)</option>
+                            <option value="หน่วยซ่อมบำรุงรถบรรทุก">แผนกซ่อมบำรุงรถบรรทุก (สายสนับสนุน)</option>
                             <option value="แผนกขนส่ง / วางแผนกลาง">แผนกขนส่ง / วางแผนกลาง (สายสนับสนุน)</option>
                             <option value="แผนกธุรการ (ขนส่ง/ซ่อมบำรุง)">แผนกธุรการ (สายสนับสนุน)</option>
                             <option value="ความปลอดภัย (จป.)">ความปลอดภัย (จป.) (สายสนับสนุน)</option>
@@ -610,147 +731,203 @@
         <div class="card">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <div>
-                    <h2>📊 ตารางประเมินคะแนน (9 คะแนนหลัก + 1 โบนัสการมีส่วนร่วม = เต็ม 10) 🔒</h2>
-                    <p>เกณฑ์: เสี่ยง (3) + ข้อมูล (3) + แก้ไข (3) = 9 คะแนนหลัก | โบนัส +1 ให้ผู้ที่ส่งรายงานตั้งแต่ 2 เรื่องขึ้นไปในเดือนที่เลือก</p>
+                    <h2>📊 ระบบประเมินและรายงานผล Near Miss 🔒</h2>
+                    <p>เกณฑ์: เสี่ยง (3) + ข้อมูล (3) + แก้ไข (3) = 9 คะแนนหลัก | โบนัส +1 ให้ผู้ที่ส่งรายงานตั้งแต่ 2 เรื่องขึ้นไปในเดือน</p>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <button class="btn-excel" onclick="exportToCSV()">📥 Export to Excel</button>
-                    <button class="btn-print" onclick="printReportDocument()">🖨️ พิมพ์รายงานสรุป (PDF)</button>
+                    <button class="btn-print" onclick="printReportDocument()">🖨️ พิมพ์รายงาน 5 หน้า (PDF)</button>
                     <button onclick="logoutAdmin()" style="background: #666; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;">🔒 ออกจากระบบ</button>
                 </div>
             </div>
             <div class="card-body" style="overflow-x: auto;">
 
-                <!-- Filter Bar: Month + Group -->
+                <!-- Global month filter — applies to every tab -->
                 <div class="filter-bar">
                     <div class="filter-group">
-                        <label style="font-weight: 600; font-size: 13px; color: var(--primary-dark);">📅 เลือกเดือนที่ต้องการดูรายงาน:</label>
-                        <select id="monthFilter" class="form-control" style="max-width: 220px; padding: 6px 10px; font-size: 13px;" onchange="renderAdminTable()">
+                        <label style="font-weight: 600; font-size: 13px; color: var(--primary-dark);">📅 เลือกเดือนที่ต้องการดูรายงาน (มีผลกับทุกแท็บด้านล่าง):</label>
+                        <select id="monthFilter" class="form-control" style="max-width: 220px; padding: 6px 10px; font-size: 13px;" onchange="onFilterChange()">
                             <option value="all">🌐 ทุกเดือน (ทั้งหมด)</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label style="font-weight: 600; font-size: 13px; color: var(--primary-dark);">🎯 กรองตามสายงาน:</label>
-                        <select id="groupFilter" class="form-control" style="max-width: 280px; padding: 6px 10px; font-size: 13px;" onchange="renderAdminTable()">
-                            <option value="all">🌐 แสดงทุกสายงาน (ภาพรวมทั้งหมด)</option>
-                            <option value="ops">🚛 สายปฏิบัติการ (ขนส่ง & ช่างซ่อมบำรุง)</option>
-                            <option value="office">🏢 สายสนับสนุน & ออฟฟิศ (ธุรการ/แม่บ้าน)</option>
                         </select>
                     </div>
                 </div>
 
-                <table id="adminTable">
-                    <thead>
-                        <tr>
-                            <th>อันดับ</th>
-                            <th>วันที่/เวลา</th>
-                            <th>ชื่อ - นามสกุล</th>
-                            <th>แผนก</th>
-                            <th>สถานที่</th>
-                            <th>เหตุการณ์ Near Miss</th>
-                            <th>รูปหลักฐาน (แตะดูรูปใหญ่)</th>
-                            <th>การแก้ปัญหาเฉพาะหน้า</th>
-                            <th>จำนวนเรื่องที่ส่ง (เดือนนี้)</th>
-                            <th>เสี่ยง (3)</th>
-                            <th>ข้อมูล (3)</th>
-                            <th>แก้ไข (3)</th>
-                            <th>โบนัสขยัน (+1)</th>
-                            <th>คะแนนรวม (10)</th>
-                            <th>การกระทำ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Dynamic rows will render here -->
-                    </tbody>
-                </table>
+                <!-- Tabs -->
+                <div class="admin-tabs">
+                    <button class="admin-tab-btn active" id="tabBtn_score" onclick="switchAdminTab('score')">🖊️ ให้คะแนน</button>
+                    <button class="admin-tab-btn" id="tabBtn_page1" onclick="switchAdminTab('page1')">📋 หน้า 1: สรุปเดือน</button>
+                    <button class="admin-tab-btn" id="tabBtn_page2" onclick="switchAdminTab('page2')">📊 หน้า 2: สถิติ</button>
+                    <button class="admin-tab-btn" id="tabBtn_page3" onclick="switchAdminTab('page3')">🏆 หน้า 3: Ranking พนักงาน</button>
+                    <button class="admin-tab-btn" id="tabBtn_page4" onclick="switchAdminTab('page4')">🏢 หน้า 4: Ranking แผนก</button>
+                    <button class="admin-tab-btn" id="tabBtn_page5" onclick="switchAdminTab('page5')">🎉 หน้า 5: ประกาศรางวัล</button>
+                </div>
+
+                <!-- TAB: Scoring table -->
+                <div class="admin-tab-panel active" id="tab_score">
+                    <div class="filter-bar">
+                        <div class="filter-group">
+                            <label style="font-weight: 600; font-size: 13px; color: var(--primary-dark);">🎯 กรองตามสายงาน:</label>
+                            <select id="groupFilter" class="form-control" style="max-width: 280px; padding: 6px 10px; font-size: 13px;" onchange="onFilterChange()">
+                                <option value="all">🌐 แสดงทุกสายงาน (ภาพรวมทั้งหมด)</option>
+                                <option value="ops">🚛 สายปฏิบัติการ (พนักงานขับรถขนส่ง)</option>
+                                <option value="office">🏢 สายสนับสนุน (ช่างซ่อมบำรุง / ออฟฟิศ / ธุรการ / แม่บ้าน)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table id="adminTable">
+                        <thead>
+                            <tr>
+                                <th>อันดับ</th>
+                                <th>วันที่/เวลา</th>
+                                <th>ชื่อ - นามสกุล</th>
+                                <th>แผนก</th>
+                                <th>สถานที่</th>
+                                <th>เหตุการณ์ Near Miss</th>
+                                <th>รูปหลักฐาน (แตะดูรูปใหญ่)</th>
+                                <th>การแก้ปัญหาเฉพาะหน้า</th>
+                                <th>จำนวนเรื่องที่ส่ง (เดือนนี้)</th>
+                                <th>เสี่ยง (3)</th>
+                                <th>ข้อมูล (3)</th>
+                                <th>แก้ไข (3)</th>
+                                <th>โบนัสขยัน (+1)</th>
+                                <th>คะแนนรวม (10)</th>
+                                <th>การกระทำ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- TAB: Page 1 — Monthly Summary -->
+                <div class="admin-tab-panel" id="tab_page1">
+                    <div id="page1Content"></div>
+                </div>
+
+                <!-- TAB: Page 2 — Statistics -->
+                <div class="admin-tab-panel" id="tab_page2">
+                    <div class="chart-box">
+                        <h3>📍 จำนวนเหตุการณ์แยกตามสถานที่</h3>
+                        <canvas id="chartLocationBar" width="700" height="300" style="max-width:100%;"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h3>⚖️ สัดส่วนสายปฏิบัติการ vs สายสนับสนุน</h3>
+                        <canvas id="chartGroupDoughnut" width="400" height="280" style="max-width:100%;"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h3>📄 ตารางสรุปสถิติ (สำรองไว้ดูควบคู่กราฟ)</h3>
+                        <div id="page2LocationTable"></div>
+                    </div>
+                </div>
+
+                <!-- TAB: Page 3 — Employee Ranking -->
+                <div class="admin-tab-panel" id="tab_page3">
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">จัดอันดับจากผลรวมคะแนนของทุกเรื่องที่พนักงานแต่ละคนส่งในเดือนที่เลือก (TOP 15)</p>
+                    <div id="page3Content"></div>
+                </div>
+
+                <!-- TAB: Page 4 — Department Ranking -->
+                <div class="admin-tab-panel" id="tab_page4">
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">จัดอันดับจาก "คะแนนเฉลี่ยต่อคน" ของแต่ละแผนก (ผลรวมคะแนนของแผนก ÷ จำนวนคนที่ส่งรายงานในแผนกนั้น)</p>
+                    <div id="page4Content"></div>
+                </div>
+
+                <!-- TAB: Page 5 — Awards -->
+                <div class="admin-tab-panel" id="tab_page5">
+                    <div id="page5Content"></div>
+                </div>
+
             </div>
         </div>
     </div>
 
-    <!-- AREA FOR PRINTING / PDF REPORT EXPORT -->
+    <!-- AREA FOR PRINTING / PDF REPORT EXPORT (5 pages) -->
     <div id="printableReportArea">
-        <div class="print-header">
-            <h1>บริษัท เซ้าท์อีสต์ทรานสปอร์ต จำกัด (พชร. ขนส่ง & ซ่อมบำรุง)</h1>
-            <h2>รายงานสรุปประเมินผลกิจกรรม Near Miss และประกาศรางวัล</h2>
-            <div style="font-size: 15px; font-weight: 600; color: #000; margin-top: 4px;" id="printReportMonth">ประจำเดือน ...</div>
-            <div style="font-size: 12px; color: #555; margin-top: 2px;" id="printReportDate"></div>
+
+        <!-- PRINT PAGE 1: Monthly Summary -->
+        <div class="print-page">
+            <div class="print-header">
+                <h1>บริษัท เซ้าท์อีสต์ทรานสปอร์ต จำกัด (พชร. ขนส่ง & ซ่อมบำรุง)</h1>
+                <h2>หน้า 1: สรุป Near Miss ประจำเดือน</h2>
+                <div style="font-size: 15px; font-weight: 600; color: #000; margin-top: 4px;" id="printReportMonth">ประจำเดือน ...</div>
+                <div style="font-size: 12px; color: #555; margin-top: 2px;" id="printReportDate"></div>
+            </div>
+            <div id="printPage1Content"></div>
         </div>
 
-        <div class="print-summary-box">
-            <div class="print-stat-item">
-                <div class="print-stat-value" id="printTotalCount">0</div>
-                <div class="print-stat-label">เหตุการณ์ที่แจ้งทั้งหมด</div>
+        <!-- PRINT PAGE 2: Statistics -->
+        <div class="print-page">
+            <div class="print-page-header">
+                <span class="company">บริษัท เซ้าท์อีสต์ทรานสปอร์ต จำกัด</span>
+                <span class="pagelabel">หน้า 2 / 5</span>
             </div>
-            <div class="print-stat-item">
-                <div class="print-stat-value" id="printOpsCount">0</div>
-                <div class="print-stat-label">สายปฏิบัติการ (ขนส่ง/ช่าง)</div>
+            <div class="print-page-title">📊 สถิติ Near Miss</div>
+            <div class="chart-box">
+                <h3>จำนวนเหตุการณ์แยกตามสถานที่</h3>
+                <canvas id="printChartLocationBar" width="700" height="260"></canvas>
             </div>
-            <div class="print-stat-item">
-                <div class="print-stat-value" id="printOfficeCount">0</div>
-                <div class="print-stat-label">สายสนับสนุน (ออฟฟิศ)</div>
+            <div class="chart-box">
+                <h3>สัดส่วนสายปฏิบัติการ vs สายสนับสนุน</h3>
+                <canvas id="printChartGroupDoughnut" width="400" height="240"></canvas>
             </div>
-            <div class="print-stat-item">
-                <div class="print-stat-value" id="printActiveCount">0</div>
-                <div class="print-stat-label">ผู้ได้รับโบนัสส่ง ≥ 2 เรื่อง</div>
+            <div id="printPage2LocationTable"></div>
+        </div>
+
+        <!-- PRINT PAGE 3: Employee Ranking -->
+        <div class="print-page">
+            <div class="print-page-header">
+                <span class="company">บริษัท เซ้าท์อีสต์ทรานสปอร์ต จำกัด</span>
+                <span class="pagelabel">หน้า 3 / 5</span>
+            </div>
+            <div class="print-page-title">🏆 Ranking พนักงาน (TOP 15)</div>
+            <div id="printPage3Content"></div>
+        </div>
+
+        <!-- PRINT PAGE 4: Department Ranking -->
+        <div class="print-page">
+            <div class="print-page-header">
+                <span class="company">บริษัท เซ้าท์อีสต์ทรานสปอร์ต จำกัด</span>
+                <span class="pagelabel">หน้า 4 / 5</span>
+            </div>
+            <div class="print-page-title">🏢 Ranking แผนก (คะแนนเฉลี่ยต่อคน)</div>
+            <div id="printPage4Content"></div>
+        </div>
+
+        <!-- PRINT PAGE 5: Awards -->
+        <div class="print-page">
+            <div class="print-page-header">
+                <span class="company">บริษัท เซ้าท์อีสต์ทรานสปอร์ต จำกัด</span>
+                <span class="pagelabel">หน้า 5 / 5</span>
+            </div>
+            <div class="print-page-title">🎉 ประกาศรางวัลประจำเดือน</div>
+            <div id="printPage5Content"></div>
+
+            <div class="signature-container">
+                <div class="signature-box">
+                    <div style="font-weight: 600; margin-bottom: 10px;">ผู้รายงานและประเมินผล</div>
+                    <div class="signature-line"></div>
+                    <div style="margin-top: 8px;">( .................................................................... )</div>
+                    <div style="font-weight: 500; margin-top: 4px;">ตำแหน่ง: เจ้าหน้าที่ความปลอดภัย ระดับวิชาชีพ</div>
+                    <div style="font-size: 12px; color: #555; margin-top: 4px;">วันที่ ......... / ......... / .............</div>
+                </div>
+
+                <div class="signature-box">
+                    <div style="font-weight: 600; margin-bottom: 10px;">ผู้อนุมัติรายงานและผลรางวัล</div>
+                    <div class="signature-line"></div>
+                    <div style="margin-top: 8px;">( .................................................................... )</div>
+                    <div style="font-weight: 500; margin-top: 4px;">ตำแหน่ง: ผู้จัดการฝ่ายขนส่ง</div>
+                    <div style="font-size: 12px; color: #555; margin-top: 4px;">วันที่ ......... / ......... / .............</div>
+                </div>
             </div>
         </div>
 
-        <div class="print-section-title">🚛 1. สรุปผลและรางวัลสายงานปฏิบัติการ (ขนส่ง & ช่างซ่อมบำรุง) — โควต้า 11 รางวัล</div>
-        <table class="print-table">
-            <thead>
-                <tr>
-                    <th style="width: 8%;">อันดับ</th>
-                    <th style="width: 22%;">ชื่อ - นามสกุล</th>
-                    <th style="width: 20%;">แผนก</th>
-                    <th style="width: 35%;">เหตุการณ์ Near Miss ที่แจ้ง</th>
-                    <th style="width: 15%;">คะแนนรวม (10)</th>
-                </tr>
-            </thead>
-            <tbody id="printOpsTbody">
-                <!-- Filtered Ops Rows -->
-            </tbody>
-        </table>
-
-        <div class="print-section-title">🏢 2. สรุปผลและรางวัลสายงานสนับสนุน (ออฟฟิศ / ธุรการ / แม่บ้าน) — โควต้า 5 รางวัล</div>
-        <table class="print-table">
-            <thead>
-                <tr>
-                    <th style="width: 8%;">อันดับ</th>
-                    <th style="width: 22%;">ชื่อ - นามสกุล</th>
-                    <th style="width: 20%;">แผนก</th>
-                    <th style="width: 35%;">เหตุการณ์ Near Miss ที่แจ้ง</th>
-                    <th style="width: 15%;">คะแนนรวม (10)</th>
-                </tr>
-            </thead>
-            <tbody id="printOfficeTbody">
-                <!-- Filtered Office Rows -->
-            </tbody>
-        </table>
-
-        <!-- OFFICIAL SIGNATURES SECTION -->
-        <div class="signature-container">
-            <div class="signature-box">
-                <div style="font-weight: 600; margin-bottom: 10px;">ผู้รายงานและประเมินผล</div>
-                <div class="signature-line"></div>
-                <div style="margin-top: 8px;">( .................................................................... )</div>
-                <div style="font-weight: 500; margin-top: 4px;">ตำแหน่ง: เจ้าหน้าที่ความปลอดภัย ระดับวิชาชีพ</div>
-                <div style="font-size: 12px; color: #555; margin-top: 4px;">วันที่ ......... / ......... / .............</div>
-            </div>
-
-            <div class="signature-box">
-                <div style="font-weight: 600; margin-bottom: 10px;">ผู้อนุมัติรายงานและผลรางวัล</div>
-                <div class="signature-line"></div>
-                <div style="margin-top: 8px;">( .................................................................... )</div>
-                <div style="font-weight: 500; margin-top: 4px;">ตำแหน่ง: ผู้จัดการฝ่ายขนส่ง</div>
-                <div style="font-size: 12px; color: #555; margin-top: 4px;">วันที่ ......... / ......... / .............</div>
-            </div>
-        </div>
     </div>
 
     <script>
         const ADMIN_PIN = "4567";
         let isAdminLoggedIn = false;
         let uploadedImagesBase64 = [];
+        let currentAdminTab = 'score';
+        const chartInstances = {};
 
         const thaiMonths = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
 
@@ -767,10 +944,7 @@
                 images: ['https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=150&auto=format&fit=crop'],
                 actionTaken: 'แตะเบรกชะลอรถ และถ่ายรูปไว้แจ้งช่างตอนถึงจุดหมาย',
                 suggestion: 'ควรเปลี่ยนสายไฟหุ้มฉนวนแบบทนความร้อนใหม่',
-                scoreRisk: 3,
-                scoreData: 3,
-                scoreAction: 3,
-                scoreBonus: 1
+                scoreRisk: 3, scoreData: 3, scoreAction: 3, scoreBonus: 1
             },
             {
                 id: 2,
@@ -786,10 +960,7 @@
                 ],
                 actionTaken: 'นำทรายซับน้ำมันมาเทและทำความสะอาดทันที',
                 suggestion: 'ทำความสะอาดเรียบร้อยแล้ว และเตือนช่างคนอื่น',
-                scoreRisk: 2,
-                scoreData: 3,
-                scoreAction: 3,
-                scoreBonus: 0
+                scoreRisk: 2, scoreData: 3, scoreAction: 3, scoreBonus: 0
             },
             {
                 id: 3,
@@ -802,10 +973,7 @@
                 images: ['https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop'],
                 actionTaken: 'ดึงปลั๊กออกทันทีและแจ้งช่างไฟฟ้า',
                 suggestion: 'แจ้งช่างให้เปลี่ยนปลั๊กพ่วงมาตรฐานใหม่ทันที',
-                scoreRisk: 2,
-                scoreData: 3,
-                scoreAction: 3,
-                scoreBonus: 0
+                scoreRisk: 2, scoreData: 3, scoreAction: 3, scoreBonus: 0
             },
             {
                 id: 4,
@@ -818,10 +986,7 @@
                 images: ['https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=150&auto=format&fit=crop'],
                 actionTaken: 'แจ้งพนักงานปั๊มให้มาทำความสะอาดทันที',
                 suggestion: 'ควรตั้งป้ายเตือนพื้นลื่นบริเวณจุดเติมน้ำมัน',
-                scoreRisk: 2,
-                scoreData: 2,
-                scoreAction: 2,
-                scoreBonus: 0
+                scoreRisk: 2, scoreData: 2, scoreAction: 2, scoreBonus: 0
             }
         ];
 
@@ -835,11 +1000,7 @@
                 title: '🔒 ใส่รหัสผ่านหลังบ้าน',
                 text: 'สำหรับทีม Safety / คณะกรรมการประเมินคะแนน',
                 input: 'password',
-                inputAttributes: {
-                    maxlength: 10,
-                    autocapitalize: 'off',
-                    autocorrect: 'off'
-                },
+                inputAttributes: { maxlength: 10, autocapitalize: 'off', autocorrect: 'off' },
                 showCancelButton: true,
                 confirmButtonText: 'เข้าสู่ระบบ',
                 cancelButtonText: 'ยกเลิก',
@@ -848,20 +1009,10 @@
                 if (result.isConfirmed) {
                     if (result.value === ADMIN_PIN) {
                         isAdminLoggedIn = true;
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'เข้าสู่ระบบสำเร็จ!',
-                            timer: 1200,
-                            showConfirmButton: false
-                        });
+                        Swal.fire({ icon: 'success', title: 'เข้าสู่ระบบสำเร็จ!', timer: 1200, showConfirmButton: false });
                         switchView('admin');
                     } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'รหัสผ่านไม่ถูกต้อง!',
-                            text: 'กรุณาลองใหม่อีกครั้ง',
-                            confirmButtonColor: '#d13438'
-                        });
+                        Swal.fire({ icon: 'error', title: 'รหัสผ่านไม่ถูกต้อง!', text: 'กรุณาลองใหม่อีกครั้ง', confirmButtonColor: '#d13438' });
                     }
                 }
             });
@@ -870,12 +1021,7 @@
         function logoutAdmin() {
             isAdminLoggedIn = false;
             switchView('user');
-            Swal.fire({
-                icon: 'info',
-                title: 'ออกจากระบบหลังบ้านแล้ว',
-                timer: 1200,
-                showConfirmButton: false
-            });
+            Swal.fire({ icon: 'info', title: 'ออกจากระบบหลังบ้านแล้ว', timer: 1200, showConfirmButton: false });
         }
 
         function switchView(mode) {
@@ -890,12 +1036,12 @@
                 document.getElementById('btnModeForm').classList.remove('active');
                 document.getElementById('btnModeAdmin').classList.add('active');
                 populateMonthFilter();
-                renderAdminTable();
+                switchAdminTab('score');
             }
         }
 
         function handleMultipleFiles(e) {
-            const files = Array.from(e.target.files).slice(0, 3); // Max 3 files
+            const files = Array.from(e.target.files).slice(0, 3);
             uploadedImagesBase64 = [];
             const previewGrid = document.getElementById('previewGrid');
             previewGrid.innerHTML = '';
@@ -904,7 +1050,6 @@
                 const reader = new FileReader();
                 reader.onload = function(evt) {
                     uploadedImagesBase64.push(evt.target.result);
-
                     const div = document.createElement('div');
                     div.className = 'preview-thumb-container';
                     div.innerHTML = `<img src="${evt.target.result}" class="preview-thumb">`;
@@ -920,9 +1065,8 @@
             const actionVal = document.getElementById('actionTaken').value.trim() || 'ไม่ได้ระบุ';
             const empName = document.getElementById('empInfo').value.trim();
 
-            // Count how many reports this employee has submitted so far
             const prevReportsCount = reportsData.filter(r => r.empInfo === empName).length;
-            const isBonusActive = (prevReportsCount >= 1); // If they already submitted 1, this new one makes it >= 2!
+            const isBonusActive = (prevReportsCount >= 1);
 
             const nowDate = new Date();
 
@@ -937,21 +1081,14 @@
                 images: uploadedImagesBase64.length > 0 ? uploadedImagesBase64 : ['https://via.placeholder.com/150?text=No+Photo'],
                 actionTaken: actionVal,
                 suggestion: document.getElementById('suggestion').value,
-                scoreRisk: 0,
-                scoreData: 0,
-                scoreAction: 0,
+                scoreRisk: 0, scoreData: 0, scoreAction: 0,
                 scoreBonus: isBonusActive ? 1 : 0
             };
 
             reportsData.unshift(newReport);
 
-            // Also update bonus for previous submissions by this employee
             if (isBonusActive) {
-                reportsData.forEach(r => {
-                    if (r.empInfo === empName) {
-                        r.scoreBonus = 1;
-                    }
-                });
+                reportsData.forEach(r => { if (r.empInfo === empName) r.scoreBonus = 1; });
             }
 
             localStorage.setItem('near_miss_data', JSON.stringify(reportsData));
@@ -969,23 +1106,17 @@
         }
 
         /* ===================== MONTH FILTER HELPERS ===================== */
-
-        // Build a "YYYY-MM" key from an ISO date string
         function monthKey(dateISO) {
             const d = new Date(dateISO);
             return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
         }
 
-        // Populate the month dropdown with every month that actually has data,
-        // newest first, formatted as Thai month name + Buddhist year (e.g. สิงหาคม 2569)
         function populateMonthFilter() {
             const monthSelect = document.getElementById('monthFilter');
             if (!monthSelect) return;
 
             const monthsSet = new Set();
-            reportsData.forEach(item => {
-                if (item.dateISO) monthsSet.add(monthKey(item.dateISO));
-            });
+            reportsData.forEach(item => { if (item.dateISO) monthsSet.add(monthKey(item.dateISO)); });
             const sortedMonths = Array.from(monthsSet).sort().reverse();
 
             const currentVal = monthSelect.value;
@@ -1003,13 +1134,12 @@
             if (currentVal && hasCurrentVal) {
                 monthSelect.value = currentVal;
             } else if (sortedMonths.length > 0) {
-                monthSelect.value = sortedMonths[0]; // default to the most recent month
+                monthSelect.value = sortedMonths[0];
             } else {
                 monthSelect.value = 'all';
             }
         }
 
-        // Filter a dataset down to the currently selected month ("all" = no filtering)
         function getFilteredByMonth(data) {
             const monthSelect = document.getElementById('monthFilter');
             const val = monthSelect ? monthSelect.value : 'all';
@@ -1017,59 +1147,318 @@
             return data.filter(item => item.dateISO && monthKey(item.dateISO) === val);
         }
 
-        // Human-readable Thai label for the currently selected month, e.g. "สิงหาคม พ.ศ. 2569"
-        function getSelectedMonthLabel() {
+        function getActiveMonthData() { return getFilteredByMonth(reportsData); }
+
+        function getSelectedMonthKey() {
             const monthSelect = document.getElementById('monthFilter');
-            const val = monthSelect ? monthSelect.value : 'all';
+            return monthSelect ? monthSelect.value : 'all';
+        }
+
+        function getSelectedMonthLabel() {
+            const val = getSelectedMonthKey();
             if (!val || val === 'all') return 'ทุกเดือน (ทั้งหมด)';
             const [y, m] = val.split('-');
             const buddhistYear = parseInt(y) + 543;
             return thaiMonths[parseInt(m) - 1] + ' พ.ศ. ' + buddhistYear;
         }
+
+        function getPrevMonthKey(key) {
+            if (!key || key === 'all') return null;
+            const [y, m] = key.split('-').map(Number);
+            let py = y, pm = m - 1;
+            if (pm === 0) { pm = 12; py -= 1; }
+            return py + '-' + String(pm).padStart(2, '0');
+        }
         /* =================== END MONTH FILTER HELPERS =================== */
+
+        /* ===================== SHARED AGGREGATION HELPERS ===================== */
+        function isOpsDept(dept) {
+            return dept.includes('ขับรถ');
+        }
+
+        function totalScoreOf(item) {
+            return (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
+        }
+
+        function buildLocationCounts(data) {
+            const map = {};
+            data.forEach(i => { map[i.location] = (map[i.location] || 0) + 1; });
+            return map;
+        }
+
+        function buildEmployeeAggregates(data) {
+            const map = {};
+            data.forEach(item => {
+                const key = item.empInfo;
+                if (!map[key]) {
+                    map[key] = { empInfo: item.empInfo, department: item.department, totalScore: 0, reportCount: 0 };
+                }
+                map[key].totalScore += totalScoreOf(item);
+                map[key].reportCount += 1;
+            });
+            return Object.values(map);
+        }
+
+        function buildDepartmentAggregates(data) {
+            const map = {};
+            data.forEach(item => {
+                const key = item.department;
+                if (!map[key]) map[key] = { department: key, totalScore: 0, employees: new Set(), reportCount: 0 };
+                map[key].totalScore += totalScoreOf(item);
+                map[key].employees.add(item.empInfo);
+                map[key].reportCount += 1;
+            });
+            return Object.values(map).map(d => ({
+                department: d.department,
+                totalScore: d.totalScore,
+                employeeCount: d.employees.size,
+                reportCount: d.reportCount,
+                avgPerPerson: d.employees.size > 0 ? (d.totalScore / d.employees.size) : 0
+            })).sort((a, b) => b.avgPerPerson - a.avgPerPerson);
+        }
+        /* =================== END SHARED AGGREGATION HELPERS =================== */
+
+        /* ===================== REPORT PAGE RENDERERS (shared by screen + print) ===================== */
+
+        // Page 1: Monthly Summary
+        function renderPage1(containerId) {
+            const data = getActiveMonthData();
+            const key = getSelectedMonthKey();
+            const prevKey = getPrevMonthKey(key);
+            const prevData = prevKey ? reportsData.filter(i => i.dateISO && monthKey(i.dateISO) === prevKey) : [];
+
+            const opsItems = data.filter(i => isOpsDept(i.department));
+            const officeItems = data.filter(i => !isOpsDept(i.department));
+            const avgScore = data.length ? (data.reduce((s, i) => s + totalScoreOf(i), 0) / data.length).toFixed(1) : '0.0';
+
+            const locCounts = buildLocationCounts(data);
+            let topLocation = '-', topLocationCount = 0;
+            Object.entries(locCounts).forEach(([loc, count]) => {
+                if (count > topLocationCount) { topLocationCount = count; topLocation = loc; }
+            });
+
+            let deltaHtml = '';
+            if (prevKey) {
+                const diff = data.length - prevData.length;
+                if (diff > 0) deltaHtml = `<div class="delta-up">▲ เพิ่มขึ้น ${diff} เรื่องจากเดือนก่อน (${prevData.length} → ${data.length})</div>`;
+                else if (diff < 0) deltaHtml = `<div class="delta-down">▼ ลดลง ${Math.abs(diff)} เรื่องจากเดือนก่อน (${prevData.length} → ${data.length})</div>`;
+                else deltaHtml = `<div class="delta-flat">▬ เท่ากับเดือนก่อน (${prevData.length} เรื่อง)</div>`;
+            } else {
+                deltaHtml = `<div class="delta-flat" style="font-size:11px;">(เลือก "ทุกเดือน" — ไม่มีข้อมูลเทียบเดือนก่อนหน้า)</div>`;
+            }
+
+            const html = `
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="value">${data.length}</div>
+                        <div class="label">เหตุการณ์ทั้งหมด</div>
+                        ${deltaHtml}
+                    </div>
+                    <div class="stat-card"><div class="value">${opsItems.length}</div><div class="label">🚛 สายปฏิบัติการ</div></div>
+                    <div class="stat-card"><div class="value">${officeItems.length}</div><div class="label">🏢 สายสนับสนุน</div></div>
+                    <div class="stat-card"><div class="value">${avgScore}</div><div class="label">คะแนนเฉลี่ย/เรื่อง (เต็ม 10)</div></div>
+                </div>
+                <div class="chart-box">
+                    <h3>📍 จุดเสี่ยงที่พบบ่อยที่สุดในเดือนนี้</h3>
+                    <p style="font-size:14px;">${data.length ? topLocation : '-'} ${data.length ? `<span style="color:#605e5c; font-size:12px;">(พบ ${topLocationCount} ครั้ง)</span>` : '<span style="color:#605e5c; font-size:12px;">ไม่มีข้อมูล</span>'}</p>
+                </div>
+            `;
+            const el = document.getElementById(containerId);
+            if (el) el.innerHTML = html;
+        }
+
+        // Page 2: Statistics (charts + backup table)
+        function renderPage2(barCanvasId, doughnutCanvasId, tableId) {
+            const data = getActiveMonthData();
+            const locCounts = buildLocationCounts(data);
+            const locLabels = Object.keys(locCounts);
+            const locValues = Object.values(locCounts);
+            const opsCount = data.filter(i => isOpsDept(i.department)).length;
+            const officeCount = data.length - opsCount;
+
+            upsertChart(barCanvasId, {
+                type: 'bar',
+                data: { labels: locLabels, datasets: [{ label: 'จำนวนเหตุการณ์', data: locValues, backgroundColor: '#0078d4' }] },
+                options: {
+                    responsive: false, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }, x: { ticks: { font: { size: 10 } } } }
+                }
+            });
+
+            upsertChart(doughnutCanvasId, {
+                type: 'doughnut',
+                data: { labels: ['สายปฏิบัติการ', 'สายสนับสนุน'], datasets: [{ data: [opsCount, officeCount], backgroundColor: ['#0078d4', '#ffb900'] }] },
+                options: { responsive: false, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            let tableHtml = '<table style="width:100%; font-size:13px;"><thead><tr><th>สถานที่</th><th>จำนวนครั้ง</th></tr></thead><tbody>';
+            if (locLabels.length === 0) {
+                tableHtml += '<tr><td colspan="2" style="text-align:center; color:#605e5c;">ไม่มีข้อมูลในเดือนที่เลือก</td></tr>';
+            } else {
+                locLabels.forEach((loc, i) => {
+                    tableHtml += `<tr><td>${loc}</td><td style="text-align:center;">${locValues[i]}</td></tr>`;
+                });
+            }
+            tableHtml += '</tbody></table>';
+            const tEl = document.getElementById(tableId);
+            if (tEl) tEl.innerHTML = tableHtml;
+        }
+
+        function upsertChart(canvasId, config) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx || typeof Chart === 'undefined') return;
+            if (chartInstances[canvasId]) {
+                chartInstances[canvasId].data = config.data;
+                chartInstances[canvasId].update();
+            } else {
+                chartInstances[canvasId] = new Chart(ctx, config);
+            }
+        }
+
+        // Page 3: Employee Ranking
+        function renderPage3(containerId) {
+            const data = getActiveMonthData();
+            const employees = buildEmployeeAggregates(data).sort((a, b) => b.totalScore - a.totalScore);
+            const top = employees.slice(0, 15);
+
+            let html = '';
+            if (top.length === 0) {
+                html = '<p style="color:#605e5c; text-align:center; padding:30px 0;">ไม่มีข้อมูลในเดือนที่เลือก</p>';
+            } else {
+                top.forEach((e, i) => {
+                    const icon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+                    html += `
+                        <div class="rank-list-card">
+                            <div class="award-rank-icon">${icon}</div>
+                            <div class="info">
+                                <div class="name">${e.empInfo}</div>
+                                <div class="meta">${e.department} • ส่ง ${e.reportCount} เรื่อง</div>
+                            </div>
+                            <div class="score">${e.totalScore} คะแนน</div>
+                        </div>`;
+                });
+            }
+            const el = document.getElementById(containerId);
+            if (el) el.innerHTML = html;
+        }
+
+        // Page 4: Department Ranking (avg score per person)
+        function renderPage4(containerId) {
+            const data = getActiveMonthData();
+            const depts = buildDepartmentAggregates(data);
+
+            let html = '';
+            if (depts.length === 0) {
+                html = '<p style="color:#605e5c; text-align:center; padding:30px 0;">ไม่มีข้อมูลในเดือนที่เลือก</p>';
+            } else {
+                depts.forEach((d, i) => {
+                    const icon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+                    html += `
+                        <div class="rank-list-card">
+                            <div class="award-rank-icon">${icon}</div>
+                            <div class="info">
+                                <div class="name">${d.department}</div>
+                                <div class="meta">${d.employeeCount} คนร่วมรายงาน • ${d.reportCount} เรื่อง • รวม ${d.totalScore} คะแนน</div>
+                            </div>
+                            <div class="score">${d.avgPerPerson.toFixed(1)}<span style="font-size:11px; color:#605e5c;"> คะแนน/คน</span></div>
+                        </div>`;
+                });
+            }
+            const el = document.getElementById(containerId);
+            if (el) el.innerHTML = html;
+        }
+
+        // Page 5: Awards (one row per employee, aggregated)
+        function renderPage5(containerId) {
+            const data = getActiveMonthData();
+            const employees = buildEmployeeAggregates(data);
+            const opsEmp = employees.filter(e => isOpsDept(e.department)).sort((a, b) => b.totalScore - a.totalScore).slice(0, 5);
+            const officeEmp = employees.filter(e => !isOpsDept(e.department)).sort((a, b) => b.totalScore - a.totalScore).slice(0, 5);
+
+            function buildAwardHtml(list, title, icon) {
+                let h = `<div class="award-section-title">${icon} ${title}</div>`;
+                if (list.length === 0) {
+                    h += `<p style="color:#605e5c; padding:10px 0;">ไม่มีข้อมูลในเดือนที่เลือก</p>`;
+                    return h;
+                }
+                list.forEach((e, i) => {
+                    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🎖️';
+                    h += `
+                        <div class="award-card">
+                            <div class="award-rank-icon">${medal}</div>
+                            <div class="info" style="flex:1;">
+                                <div class="name">${i + 1}. ${e.empInfo}</div>
+                                <div class="meta">${e.department} • ${e.reportCount} เรื่อง • ${e.totalScore} คะแนน</div>
+                            </div>
+                        </div>`;
+                });
+                return h;
+            }
+
+            const html = buildAwardHtml(opsEmp, 'สายปฏิบัติการ (พนักงานขับรถขนส่ง) — โควต้า 5 รางวัล', '🚛')
+                       + buildAwardHtml(officeEmp, 'สายสนับสนุน (ช่างซ่อมบำรุง / ออฟฟิศ / ธุรการ / แม่บ้าน) — โควต้า 5 รางวัล', '🏢');
+
+            const el = document.getElementById(containerId);
+            if (el) el.innerHTML = html;
+        }
+        /* =================== END REPORT PAGE RENDERERS =================== */
+
+        /* ===================== ADMIN TAB SWITCHING ===================== */
+        function switchAdminTab(tab) {
+            currentAdminTab = tab;
+            document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-panel').forEach(p => p.classList.remove('active'));
+
+            const btn = document.getElementById('tabBtn_' + tab);
+            const panel = document.getElementById('tab_' + tab);
+            if (btn) btn.classList.add('active');
+            if (panel) panel.classList.add('active');
+
+            if (tab === 'score') renderAdminTable();
+            else if (tab === 'page1') renderPage1('page1Content');
+            else if (tab === 'page2') renderPage2('chartLocationBar', 'chartGroupDoughnut', 'page2LocationTable');
+            else if (tab === 'page3') renderPage3('page3Content');
+            else if (tab === 'page4') renderPage4('page4Content');
+            else if (tab === 'page5') renderPage5('page5Content');
+        }
+
+        // Called whenever the month or group dropdown changes
+        function onFilterChange() {
+            switchAdminTab(currentAdminTab);
+        }
+        /* =================== END ADMIN TAB SWITCHING =================== */
 
         function renderAdminTable() {
             const tbody = document.getElementById('tableBody');
+            if (!tbody) return;
             tbody.innerHTML = '';
 
             const filterVal = document.getElementById('groupFilter') ? document.getElementById('groupFilter').value : 'all';
+            const monthScoped = getActiveMonthData();
 
-            // Step 1: scope everything to the selected month
-            const monthScoped = getFilteredByMonth(reportsData);
-
-            // Step 2: filter by group within that month
             let filteredData = monthScoped.filter(item => {
-                if (filterVal === 'ops') {
-                    return item.department.includes('ขับรถ') || item.department.includes('ซ่อมบำรุง');
-                } else if (filterVal === 'office') {
-                    return !item.department.includes('ขับรถ') && !item.department.includes('ซ่อมบำรุง');
-                }
-                return true; // all
+                if (filterVal === 'ops') return isOpsDept(item.department);
+                if (filterVal === 'office') return !isOpsDept(item.department);
+                return true;
             });
 
-            // Sort by Total Score descending
-            filteredData.sort((a, b) => {
-                const totalA = (a.scoreRisk || 0) + (a.scoreData || 0) + (a.scoreAction || 0) + (a.scoreBonus || 0);
-                const totalB = (b.scoreRisk || 0) + (b.scoreData || 0) + (b.scoreAction || 0) + (b.scoreBonus || 0);
-                return totalB - totalA;
-            });
+            filteredData.sort((a, b) => totalScoreOf(b) - totalScoreOf(a));
 
             filteredData.forEach((item, index) => {
-                const totalScore = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
+                const totalScore = totalScoreOf(item);
 
                 let rankBadgeClass = 'rank-other';
                 if (index === 0) rankBadgeClass = 'rank-1';
                 else if (index === 1) rankBadgeClass = 'rank-2';
                 else if (index === 2) rankBadgeClass = 'rank-3';
 
-                // Count submissions by this employee WITHIN the selected month
                 const empSubmissionsCount = monthScoped.filter(r => r.empInfo === item.empInfo).length;
                 let submissionTag = `<span class="bonus-tag-single">1 เรื่อง</span>`;
                 if (empSubmissionsCount >= 2) {
                     submissionTag = `<span class="bonus-tag-active">🔥 ${empSubmissionsCount} เรื่อง (ได้โบนัส)</span>`;
                 }
 
-                // Handle multiple images rendering
                 const imagesList = item.images || (item.image ? [item.image] : []);
                 let imgHtml = '<div class="img-thumbnail-grid">';
                 imagesList.forEach((imgUrl, i) => {
@@ -1113,7 +1502,7 @@
                 reportsData = reportsData.filter(r => r.id !== id);
                 localStorage.setItem('near_miss_data', JSON.stringify(reportsData));
                 populateMonthFilter();
-                renderAdminTable();
+                switchAdminTab(currentAdminTab);
             }
         }
 
@@ -1130,14 +1519,13 @@
         }
 
         function exportToCSV() {
-            // Respects the currently selected month filter
-            const dataToExport = getFilteredByMonth(reportsData);
+            const dataToExport = getActiveMonthData();
 
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
             csvContent += "ลำดับ,วันที่เวลา,ชื่อ-นามสกุล,แผนก,สถานที่,เหตุการณ์,การแก้ปัญหาเฉพาะหน้า,จำนวนรูปถ่าย,จำนวนเรื่องที่ส่งรวม,คะแนนรวม\n";
 
             dataToExport.forEach((item, index) => {
-                const total = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
+                const total = totalScoreOf(item);
                 const countImgs = (item.images ? item.images.length : 1);
                 const countSubs = dataToExport.filter(r => r.empInfo === item.empInfo).length;
                 let row = `"${index+1}","${item.timestamp}","${item.empInfo}","${item.department}","${item.location}","${item.description.replace(/"/g, '""')}","${(item.actionTaken || '-').replace(/"/g, '""')}","${countImgs} รูป","${countSubs} เรื่อง","${total}"`;
@@ -1154,75 +1542,20 @@
             document.body.removeChild(link);
         }
 
-        /* PRINTABLE REPORT GENERATOR FUNCTION */
+        /* PRINTABLE 5-PAGE REPORT GENERATOR */
         function printReportDocument() {
-            // Scope the whole report to whichever month is selected in the dropdown
-            const monthFilteredData = getFilteredByMonth(reportsData);
-
             document.getElementById('printReportMonth').innerText = 'ประจำเดือน ' + getSelectedMonthLabel();
             document.getElementById('printReportDate').innerText =
                 'วันที่ออกรายงาน: ' + new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 
-            document.getElementById('printTotalCount').innerText = monthFilteredData.length;
+            renderPage1('printPage1Content');
+            renderPage2('printChartLocationBar', 'printChartGroupDoughnut', 'printPage2LocationTable');
+            renderPage3('printPage3Content');
+            renderPage4('printPage4Content');
+            renderPage5('printPage5Content');
 
-            const opsItems = monthFilteredData.filter(i => i.department.includes('ขับรถ') || i.department.includes('ซ่อมบำรุง'));
-            const officeItems = monthFilteredData.filter(i => !i.department.includes('ขับรถ') && !i.department.includes('ซ่อมบำรุง'));
-
-            // Count unique people who submitted >= 2 reports WITHIN the selected month
-            const uniqueActiveReporters = new Set(
-                monthFilteredData.filter(r => monthFilteredData.filter(item => item.empInfo === r.empInfo).length >= 2).map(r => r.empInfo)
-            ).size;
-
-            document.getElementById('printOpsCount').innerText = opsItems.length;
-            document.getElementById('printOfficeCount').innerText = officeItems.length;
-            document.getElementById('printActiveCount').innerText = uniqueActiveReporters + " คน";
-
-            // Render Ops Table
-            opsItems.sort((a, b) => {
-                const totalA = (a.scoreRisk || 0) + (a.scoreData || 0) + (a.scoreAction || 0) + (a.scoreBonus || 0);
-                const totalB = (b.scoreRisk || 0) + (b.scoreData || 0) + (b.scoreAction || 0) + (b.scoreBonus || 0);
-                return totalB - totalA;
-            });
-
-            const printOpsTbody = document.getElementById('printOpsTbody');
-            printOpsTbody.innerHTML = '';
-            opsItems.slice(0, 11).forEach((item, index) => {
-                const totalScore = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td style="text-align: center; font-weight: bold;">${index + 1}</td>
-                    <td><b>${item.empInfo}</b></td>
-                    <td>${item.department}</td>
-                    <td>${item.description}</td>
-                    <td style="text-align: center; font-weight: bold; font-size: 13px;">${totalScore} / 10</td>
-                `;
-                printOpsTbody.appendChild(row);
-            });
-
-            // Render Office Table
-            officeItems.sort((a, b) => {
-                const totalA = (a.scoreRisk || 0) + (a.scoreData || 0) + (a.scoreAction || 0) + (a.scoreBonus || 0);
-                const totalB = (b.scoreRisk || 0) + (b.scoreData || 0) + (b.scoreAction || 0) + (b.scoreBonus || 0);
-                return totalB - totalA;
-            });
-
-            const printOfficeTbody = document.getElementById('printOfficeTbody');
-            printOfficeTbody.innerHTML = '';
-            officeItems.slice(0, 5).forEach((item, index) => {
-                const totalScore = (item.scoreRisk || 0) + (item.scoreData || 0) + (item.scoreAction || 0) + (item.scoreBonus || 0);
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td style="text-align: center; font-weight: bold;">${index + 1}</td>
-                    <td><b>${item.empInfo}</b></td>
-                    <td>${item.department}</td>
-                    <td>${item.description}</td>
-                    <td style="text-align: center; font-weight: bold; font-size: 13px;">${totalScore} / 10</td>
-                `;
-                printOfficeTbody.appendChild(row);
-            });
-
-            // Trigger Window Print
-            window.print();
+            // small delay so charts finish drawing before the print dialog captures the page
+            setTimeout(() => { window.print(); }, 300);
         }
     </script>
 </body>
