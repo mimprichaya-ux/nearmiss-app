@@ -1713,5 +1713,113 @@ async function deleteReport(id) {
     switchAdminTab(currentAdminTab);
 }
 </script>
+<script>
+/* ===== รอบปรับปรุงให้ใช้งานง่าย ===== */
+
+/* ข้อ 1: ตัดคำนำหน้า/ช่องว่างส่วนเกินออกจากชื่อ เพื่อให้คนเดียวกันนับเป็นคนเดียว */
+function normalizeName(s) {
+    s = (s || '').replace(/\s+/g, ' ').trim();
+    const withSpace = /^(นางสาว|น\.ส\.|นส\.|นาย|นาง|คุณ)\s+/;
+    const attached = /^(นางสาว|น\.ส\.|นส\.|นาย|นาง)(?=\S+\s+\S)/;
+    if (withSpace.test(s)) return s.replace(withSpace, '');
+    if (attached.test(s)) return s.replace(attached, '');
+    return s;
+}
+
+// ข้อความใต้ช่องชื่อ
+(function () {
+    const hint = document.getElementById('empInfo').previousElementSibling;
+    if (hint) hint.textContent = '(พิมพ์ชื่อ-นามสกุล ไม่ต้องใส่คำนำหน้า เช่น สมชาย ใจดี)';
+})();
+
+/* ข้อ 3: ส่งรายงาน พร้อมข้อความหลังส่งที่กระตุ้นให้ส่งซ้ำ */
+async function submitReport(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type=submit]');
+    btn.disabled = true;
+    btn.textContent = '⏳ กำลังส่ง... (รูปอาจใช้เวลาสักครู่)';
+    const payload = {
+        action: 'add',
+        empInfo: normalizeName(document.getElementById('empInfo').value),
+        department: document.getElementById('department').value,
+        location: document.getElementById('location').value,
+        description: document.getElementById('description').value,
+        actionTaken: document.getElementById('actionTaken').value.trim() || 'ไม่ได้ระบุ',
+        suggestion: document.getElementById('suggestion').value,
+        images: uploadedImagesBase64
+    };
+    try {
+        const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const j = await res.json();
+        if (!j.ok) throw new Error(j.error);
+        Swal.fire({
+            icon: 'success',
+            title: 'ส่งรายงานสำเร็จ!',
+            html: 'ขอบคุณที่ร่วมสร้างความปลอดภัยให้องค์กรของเรา<br><br>' +
+                  '🎁 ส่งครบ <b>2 เรื่องขึ้นไปในเดือนเดียวกัน</b> รับโบนัส +1 คะแนน<br>' +
+                  '📢 ประกาศผลรางวัลสิ้นเดือน',
+            confirmButtonColor: '#0078d4'
+        });
+        document.getElementById('nearMissForm').reset();
+        document.getElementById('previewGrid').innerHTML = '';
+        uploadedImagesBase64 = [];
+    } catch (err) {
+        Swal.fire({ icon: 'error', title: 'ส่งไม่สำเร็จ',
+            text: 'กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง', confirmButtonColor: '#d13438' });
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🚀 ส่งรายงาน Near Miss';
+    }
+}
+
+/* ข้อ 4: หลังบ้าน — รายงานที่ยังไม่ให้คะแนนขึ้นบนสุด + ป้ายเตือน */
+const _renderAdminTableOrig = renderAdminTable;
+renderAdminTable = function () {
+    _renderAdminTableOrig();
+    const tbody = document.getElementById('tableBody');
+    if (!tbody) return;
+
+    const pending = [];
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+        const inputs = tr.querySelectorAll('.score-input');
+        const unscored = inputs.length >= 3 &&
+            [0, 1, 2].every(i => (parseInt(inputs[i].value) || 0) === 0);
+        if (unscored) {
+            tr.style.background = '#fff8e1';
+            tr.children[2].insertAdjacentHTML('beforeend',
+                '<div><span class="bonus-tag-active" style="background:#fff3cd;color:#8a6d00;">🆕 ยังไม่ให้คะแนน</span></div>');
+            pending.push(tr);
+        }
+    });
+
+    pending.slice().reverse().forEach(tr => tbody.prepend(tr));
+
+    let n = 0;
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+        const cell = tr.children[0];
+        if (pending.includes(tr)) {
+            cell.innerHTML = '<span style="font-size:18px;">🆕</span>';
+            return;
+        }
+        n++;
+        const cls = n === 1 ? 'rank-1' : n === 2 ? 'rank-2' : n === 3 ? 'rank-3' : 'rank-other';
+        cell.innerHTML = `<span class="rank-badge ${cls}">${n}</span>`;
+    });
+
+    let notice = document.getElementById('pendingNotice');
+    if (!notice) {
+        document.getElementById('adminTable').insertAdjacentHTML('beforebegin',
+            '<div id="pendingNotice" style="margin-bottom:10px; font-size:13px; font-weight:600;"></div>');
+        notice = document.getElementById('pendingNotice');
+    }
+    notice.innerHTML = pending.length
+        ? `<span style="color:#8a6d00;">🆕 มี ${pending.length} รายงานที่ยังไม่ได้ให้คะแนน (แสดงไว้บนสุดของตาราง)</span>`
+        : '<span style="color:#107c41;">✅ ให้คะแนนครบทุกรายงานแล้ว</span>';
+};
+</script>
 </body>
 </html>
