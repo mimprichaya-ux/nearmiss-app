@@ -1558,5 +1558,162 @@
             setTimeout(() => { window.print(); }, 300);
         }
     </script>
+    <script>
+/* ===== เชื่อมต่อ Google Sheets ===== */
+const API_URL = 'https://script.google.com/macros/s/AKfycbzx_lti_qZLVnZfCrfPOSg57Nc3BpEL6Hhl49-N4ILXg3jt3BZCMmxcqqXweljRFYvKFQ/exec';
+let adminPin = '';
+reportsData = [];
+
+async function api(body) {
+    const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ ...body, pin: adminPin })
+    });
+    return res.json();
+}
+
+async function loadReports(pin) {
+    const res = await fetch(API_URL + '?pin=' + encodeURIComponent(pin));
+    const j = await res.json();
+    if (!j.ok) return false;
+    adminPin = pin;
+    reportsData = j.data;
+    return true;
+}
+
+async function requestAdminAccess() {
+    if (isAdminLoggedIn) {
+        Swal.fire({ title: 'กำลังโหลดข้อมูล...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        try { await loadReports(adminPin); } catch (e) {}
+        Swal.close();
+        switchView('admin');
+        return;
+    }
+    Swal.fire({
+        title: '🔒 ใส่รหัสผ่านหลังบ้าน',
+        text: 'สำหรับทีม Safety / คณะกรรมการประเมินคะแนน',
+        input: 'password',
+        inputAttributes: { maxlength: 10, autocapitalize: 'off', autocorrect: 'off' },
+        showCancelButton: true,
+        confirmButtonText: 'เข้าสู่ระบบ',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#0078d4',
+        showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
+        preConfirm: async (pin) => {
+            try {
+                const ok = await loadReports(pin);
+                if (!ok) Swal.showValidationMessage('รหัสผ่านไม่ถูกต้อง');
+                return ok;
+            } catch (e) {
+                Swal.showValidationMessage('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองใหม่อีกครั้ง');
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed && result.value) {
+            isAdminLoggedIn = true;
+            switchView('admin');
+        }
+    });
+}
+
+function logoutAdmin() {
+    isAdminLoggedIn = false;
+    adminPin = '';
+    reportsData = [];
+    switchView('user');
+    Swal.fire({ icon: 'info', title: 'ออกจากระบบหลังบ้านแล้ว', timer: 1200, showConfirmButton: false });
+}
+
+function compressImage(file, maxSize = 1000, quality = 0.7) {
+    return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = new Image();
+            img.onload = () => {
+                const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+                const c = document.createElement('canvas');
+                c.width = Math.round(img.width * scale);
+                c.height = Math.round(img.height * scale);
+                c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                resolve(c.toDataURL('image/jpeg', quality));
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+async function handleMultipleFiles(e) {
+    const files = Array.from(e.target.files).slice(0, 3);
+    uploadedImagesBase64 = [];
+    const previewGrid = document.getElementById('previewGrid');
+    previewGrid.innerHTML = '';
+    for (const file of files) {
+        const data = await compressImage(file);
+        uploadedImagesBase64.push(data);
+        const div = document.createElement('div');
+        div.className = 'preview-thumb-container';
+        div.innerHTML = `<img src="${data}" class="preview-thumb">`;
+        previewGrid.appendChild(div);
+    }
+}
+
+async function submitReport(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type=submit]');
+    btn.disabled = true;
+    btn.textContent = '⏳ กำลังส่ง...';
+    const payload = {
+        action: 'add',
+        empInfo: document.getElementById('empInfo').value.trim(),
+        department: document.getElementById('department').value,
+        location: document.getElementById('location').value,
+        description: document.getElementById('description').value,
+        actionTaken: document.getElementById('actionTaken').value.trim() || 'ไม่ได้ระบุ',
+        suggestion: document.getElementById('suggestion').value,
+        images: uploadedImagesBase64
+    };
+    try {
+        const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const j = await res.json();
+        if (!j.ok) throw new Error(j.error);
+        Swal.fire({ icon: 'success', title: 'ส่งรายงานสำเร็จ!',
+            text: 'ขอบคุณที่ร่วมสร้างความปลอดภัยให้องค์กรของเรา', confirmButtonColor: '#0078d4' });
+        document.getElementById('nearMissForm').reset();
+        document.getElementById('previewGrid').innerHTML = '';
+        uploadedImagesBase64 = [];
+    } catch (err) {
+        Swal.fire({ icon: 'error', title: 'ส่งไม่สำเร็จ',
+            text: 'กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง', confirmButtonColor: '#d13438' });
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🚀 ส่งรายงาน Near Miss';
+    }
+}
+
+async function updateScore(id, field, val) {
+    const target = reportsData.find(r => r.id === id);
+    if (!target) return;
+    target[field] = parseInt(val) || 0;
+    renderAdminTable();
+    const j = await api({ action: 'score', id: id, field: field, value: target[field] });
+    if (!j.ok) Swal.fire({ icon: 'error', title: 'บันทึกคะแนนไม่สำเร็จ', text: 'ลองใหม่อีกครั้ง' });
+}
+
+async function deleteReport(id) {
+    if (!confirm('คุณต้องการลบรายการนี้ใช่หรือไม่?')) return;
+    const j = await api({ action: 'delete', id: id });
+    if (!j.ok) { Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ' }); return; }
+    reportsData = reportsData.filter(r => r.id !== id);
+    populateMonthFilter();
+    switchAdminTab(currentAdminTab);
+}
+</script>
 </body>
 </html>
